@@ -1,0 +1,223 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "JO-.#####",
+ "creation": "2026-03-17 12:19:01.998378",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_y6dk",
+  "amended_from",
+  "job_type",
+  "priority",
+  "expected_completion_date",
+  "column_break_atxk",
+  "customer",
+  "customer_address",
+  "address",
+  "driver_details_section",
+  "driver",
+  "license_number",
+  "column_break_bmzj",
+  "driver_name",
+  "contact_no",
+  "vehicle_details_section",
+  "vehicle",
+  "model",
+  "fuel_type",
+  "column_break_ekei",
+  "odometer_value_last",
+  "make",
+  "data_toqf",
+  "job_order_item_section",
+  "job_order_items"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_y6dk",
+   "fieldtype": "Section Break",
+   "label": "Job Order"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Job Order",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "job_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Job Type",
+   "options": "\nNew\nRoutine Service\nWarranty\nInsurance Claim\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_atxk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Driver"
+  },
+  {
+   "fieldname": "driver_details_section",
+   "fieldtype": "Section Break",
+   "label": "Driver Details"
+  },
+  {
+   "fetch_from": "driver.license_number",
+   "fieldname": "license_number",
+   "fieldtype": "Data",
+   "label": "License Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bmzj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "driver.full_name",
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "label": "Driver Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "driver.cell_number",
+   "fieldname": "contact_no",
+   "fieldtype": "Data",
+   "label": "Contact No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vehicle_details_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Details"
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "options": "Vehicle"
+  },
+  {
+   "fetch_from": "vehicle.model",
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ekei",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "vehicle.make",
+   "fieldname": "make",
+   "fieldtype": "Data",
+   "label": "Make",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vehicle.chassis_no",
+   "fieldname": "data_toqf",
+   "fieldtype": "Data",
+   "label": "Chasis Number",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vehicle.fuel_type",
+   "fieldname": "fuel_type",
+   "fieldtype": "Data",
+   "label": "Fuel Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vehicle.last_odometer",
+   "fieldname": "odometer_value_last",
+   "fieldtype": "Data",
+   "label": "Odometer Value (Last)"
+  },
+  {
+   "fieldname": "job_order_item_section",
+   "fieldtype": "Section Break",
+   "label": "Job Order Item"
+  },
+  {
+   "fieldname": "job_order_items",
+   "fieldtype": "Table",
+   "label": "Job Order Items",
+   "options": "Job Order Item"
+  },
+  {
+   "fetch_from": "customer.customer_primary_address",
+   "fieldname": "customer_address",
+   "fieldtype": "Link",
+   "label": "Customer Address",
+   "options": "Address"
+  },
+  {
+   "fetch_from": "customer.primary_address",
+   "fieldname": "address",
+   "fieldtype": "Text",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "\nLow\nMedium\nHigh"
+  },
+  {
+   "fieldname": "expected_completion_date",
+   "fieldtype": "Date",
+   "label": "Expected Completion Date"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-03-17 16:37:26.959179",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Job Order",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
