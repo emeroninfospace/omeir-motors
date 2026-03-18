@@ -3,10 +3,19 @@
 
 frappe.ui.form.on('Job Order', {
     refresh: function(frm) {
+        let vehicle_field = frm.get_docfield("vehicle");
+
+        if (vehicle_field) {
+            vehicle_field.get_route_options_for_new_doc = () => {
+                return {
+                    custom_customer: frm.doc.customer
+                };
+            };
+        }
         if (frm.doc.docstatus === 1) {
-            frm.add_custom_button('Create Quotation', () => {
+            frm.add_custom_button('Create Sales Invoice', () => {
                 frappe.call({
-                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_quotation',
+                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
                     args: {
                         source_name: frm.doc.name
                     },

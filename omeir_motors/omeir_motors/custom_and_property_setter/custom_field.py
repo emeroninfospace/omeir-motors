@@ -9,4 +9,14 @@ CREATE_FIELDS={
                 "insert_after": "valid_till"
             },
         ],
+        "Sales Invoice": [
+            {
+                "fieldname": "custom_job_order",
+                "label": "Job Order",
+                "fieldtype": "Link",
+                "options": "Job Order",
+                "read_only":1,
+                "insert_after": "due_date"
+            },
+        ],
 }
