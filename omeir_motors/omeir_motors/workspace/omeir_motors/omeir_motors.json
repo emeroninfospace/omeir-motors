@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"ClJNJ-vEZQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Omeir Motors</span>\",\"col\":12}},{\"id\":\"g67sYSXB4l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"0VyGMYUEFi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"2yqc2w6aO9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"IU0jAQ4XiN\",\"type\":\"card\",\"data\":{\"card_name\":\"Job Management\",\"col\":4}},{\"id\":\"r35qEosm-t\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}}]",
+ "content": "[{\"id\":\"ClJNJ-vEZQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Omeir Motors</span>\",\"col\":12}},{\"id\":\"0VyGMYUEFi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"g67sYSXB4l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"dg1ZuubFBE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"2yqc2w6aO9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"r35qEosm-t\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}},{\"id\":\"IU0jAQ4XiN\",\"type\":\"card\",\"data\":{\"card_name\":\"Job Management\",\"col\":4}}]",
  "creation": "2026-03-17 14:36:04.510569",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,31 +16,11 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Job Management",
-   "link_count": 3,
+   "label": "Masters",
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Job Order",
-   "link_count": 0,
-   "link_to": "Job Order",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Quotation",
-   "link_count": 0,
-   "link_to": "Quotation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -55,11 +35,12 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Masters",
-   "link_count": 3,
+   "label": "Item",
+   "link_count": 0,
+   "link_to": "Item",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -90,9 +71,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Job Management",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quotation",
+   "link_count": 0,
+   "link_to": "Quotation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Job Order",
+   "link_count": 0,
+   "link_to": "Job Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-17 14:42:26.565901",
+ "modified": "2026-03-18 15:53:06.916573",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Omeir Motors",
@@ -105,18 +125,26 @@
  "sequence_id": 7.0,
  "shortcuts": [
   {
-   "color": "Grey",
+   "color": "Orange",
    "doc_view": "List",
-   "label": "Job Order",
-   "link_to": "Job Order",
+   "label": "Sales Invoice",
+   "link_to": "Sales Invoice",
    "stats_filter": "[]",
    "type": "DocType"
   },
   {
-   "color": "Grey",
+   "color": "Green",
    "doc_view": "List",
    "label": "Quotation",
    "link_to": "Quotation",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Job Order",
+   "link_to": "Job Order",
    "stats_filter": "[]",
    "type": "DocType"
   }
