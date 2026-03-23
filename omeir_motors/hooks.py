@@ -247,3 +247,13 @@ doctype_js = {"Quotation" : "public/js/quotation.js"}
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+fixtures = [
+    {
+        "dt": "Custom HTML Block",
+        "filters": [
+            ["name", "in", [
+                "Vehicle Service Dashboard"
+            ]]
+        ]
+    }
+]
