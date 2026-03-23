@@ -28,7 +28,17 @@ frappe.ui.form.on('Job Order', {
                 });
             }, 'Create');
         }
-    }
+    },
+    vehicle: function(frm) {
+		if (frm.doc.vehicle) {
+			frappe.db.get_value('Vehicle', frm.doc.vehicle, 'last_odometer')
+				.then(r => {
+					if (r.message) {
+						frm.set_value('odometer_value_last', r.message.last_odometer);
+					}
+				});
+		}
+	}
 });
 
 
