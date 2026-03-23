@@ -148,11 +148,9 @@
    "read_only": 1
   },
   {
-   "fetch_from": "vehicle.last_odometer",
    "fieldname": "odometer_value_last",
    "fieldtype": "Data",
-   "label": "Odometer Value (Last)",
-   "read_only": 1
+   "label": "Odometer Value (Last)"
   },
   {
    "fieldname": "job_order_item_section",
@@ -247,7 +245,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-18 16:55:38.289574",
+ "modified": "2026-03-23 12:23:42.349396",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",

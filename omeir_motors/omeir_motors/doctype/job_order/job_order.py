@@ -7,8 +7,35 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
-	pass
+	def before_save(self):
+		self.validate_and_update_vehicle_odometer()
 
+	def on_submit(self):
+		self.validate_and_update_vehicle_odometer()
+
+	def validate_and_update_vehicle_odometer(self):
+		if not self.vehicle or not self.odometer_value_last:
+			return
+
+		vehicle_odometer = frappe.db.get_value(
+			"Vehicle", self.vehicle, "last_odometer"
+		)
+
+		job_odometer = float(self.odometer_value_last or 0)
+		vehicle_odometer = float(vehicle_odometer or 0)
+
+		if job_odometer < vehicle_odometer:
+			frappe.throw(
+				f"Odometer cannot be less than current vehicle reading ({vehicle_odometer})"
+			)
+
+		if job_odometer > vehicle_odometer:
+			frappe.db.set_value(
+				"Vehicle",
+				self.vehicle,
+				"last_odometer",
+				job_odometer
+			)
 
 
 import frappe
