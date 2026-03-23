@@ -26,11 +26,13 @@
   "vehicle",
   "model",
   "fuel_type",
+  "in_time",
   "fuel_level",
   "column_break_ekei",
   "odometer_value_last",
   "make",
   "data_toqf",
+  "out_time",
   "job_order_item_section",
   "job_order_items",
   "section_break_nnhr",
@@ -229,13 +231,23 @@
    "label": "Customer",
    "options": "Customer",
    "reqd": 1
+  },
+  {
+   "fieldname": "in_time",
+   "fieldtype": "Datetime",
+   "label": "In Time"
+  },
+  {
+   "fieldname": "out_time",
+   "fieldtype": "Datetime",
+   "label": "Out Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-18 15:59:14.609820",
+ "modified": "2026-03-18 16:55:38.289574",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
