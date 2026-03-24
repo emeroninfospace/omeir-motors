@@ -1,15 +1,17 @@
 from frappe import _
 
-def get_data():
-    return {
-        "fieldname": "custom_job_order", 
-        "non_standard_fieldnames": {
-            "Quotation": "custom_job_order"
-        },
-        "transactions": [
-            {
-                "label": _("Related"),
-                "items": ["Quotation"]
-            }
-        ]
-    }
+def get_data(data=None):
+	return {
+		"fieldname": "name",
+
+		"non_standard_fieldnames": {
+			"Vehicle Log": "custom_job_order"
+		},
+
+		"transactions": [
+			{
+				"label": _("Vehicle"),
+				"items": ["Vehicle Log"]
+			}
+		]
+	}

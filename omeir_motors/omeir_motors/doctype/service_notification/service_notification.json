@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SN-.#####",
+ "creation": "2026-03-23 17:26:48.558274",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_info_section",
+  "customer",
+  "customer_address",
+  "column_break_mshq",
+  "type",
+  "quotation",
+  "vehicle_info_section",
+  "vehicle",
+  "chasis_number",
+  "odometer_value_last",
+  "column_break_gvlu",
+  "model",
+  "make",
+  "fuel_type",
+  "service_items_section",
+  "service_items"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_primary_address",
+   "fieldname": "customer_address",
+   "fieldtype": "Link",
+   "label": "Customer Address",
+   "options": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mshq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nMulti\nImport",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer_info_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Info"
+  },
+  {
+   "fieldname": "vehicle_info_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Info"
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "options": "Vehicle"
+  },
+  {
+   "fetch_from": "quotation.custom_chasis_number",
+   "fieldname": "chasis_number",
+   "fieldtype": "Data",
+   "label": "Chasis Number",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "quotation.custom_odometer_value_last",
+   "fieldname": "odometer_value_last",
+   "fieldtype": "Data",
+   "label": "Odometer Value (Last)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gvlu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "quotation.custom_model",
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "label": "Model",
+   "options": "Model",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "quotation.custom_make",
+   "fieldname": "make",
+   "fieldtype": "Data",
+   "label": "Make",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "quotation.custom_fuel_type",
+   "fieldname": "fuel_type",
+   "fieldtype": "Data",
+   "label": "Fuel Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_items_section",
+   "fieldtype": "Section Break",
+   "label": "Service Items"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Service Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-23 17:44:21.022235",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Service Notification",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

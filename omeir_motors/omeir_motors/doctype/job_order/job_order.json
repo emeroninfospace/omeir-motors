@@ -12,9 +12,11 @@
   "priority",
   "expected_completion_date",
   "company",
+  "quotation",
   "column_break_atxk",
   "customer",
   "customer_address",
+  "type",
   "address",
   "driver_details_section",
   "driver",
@@ -134,13 +136,6 @@
    "read_only": 1
   },
   {
-   "fetch_from": "vehicle.chassis_no",
-   "fieldname": "data_toqf",
-   "fieldtype": "Data",
-   "label": "Chasis Number",
-   "read_only": 1
-  },
-  {
    "fetch_from": "vehicle.fuel_type",
    "fieldname": "fuel_type",
    "fieldtype": "Data",
@@ -239,13 +234,34 @@
    "fieldname": "out_time",
    "fieldtype": "Datetime",
    "label": "Out Time"
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vehicle.chassis_no",
+   "fieldname": "data_toqf",
+   "fieldtype": "Data",
+   "label": "Chasis Number"
+  },
+  {
+   "fetch_from": "customer.custom_type",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nMulti\nImport",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-23 12:23:42.349396",
+ "modified": "2026-03-23 17:18:28.523510",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
