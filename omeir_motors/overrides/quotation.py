@@ -77,31 +77,26 @@ def create_job_order(source_name, target_doc=None):
 
 @frappe.whitelist()
 def create_from_quotation(quotation):
-	quotation_doc = frappe.get_doc("Quotation", quotation)
+    quotation_doc = frappe.get_doc("Quotation", quotation)
 
-	doc = frappe.new_doc("Service Notification")
+    doc = frappe.new_doc("Service Notification")
 
-	doc.customer = quotation_doc.party_name
-	doc.quotation = quotation_doc.name
-	doc.type = "Multi"
+    doc.customer = quotation_doc.party_name
+    doc.quotation = quotation_doc.name
+    doc.type = quotation_doc.custom_type
+    doc.total_quantity = quotation_doc.total_qty
+    doc.total_amount = quotation_doc.total
 
-	doc.vehicle = quotation_doc.get("custom_vehicle")
-	doc.chasis_number = quotation_doc.get("custom_chasis_number")
-	doc.odometer_value_last = quotation_doc.get("custom_odometer_value_last")
-	doc.model = quotation_doc.get("custom_model")
-	doc.make = quotation_doc.get("custom_make")
-	doc.fuel_type = quotation_doc.get("custom_fuel_type")
+    for item in quotation_doc.items:
+        row = doc.append("service_items", {})
+        row.item_code = item.item_code
+        row.item_name = item.item_name
+        row.uom = item.uom
+        row.quantity = item.qty
+        row.rate = item.rate
+        row.amount = (item.qty or 0) * (item.rate or 0)
 
-	for item in quotation_doc.items:
-		row = doc.append("service_items", {})
-		row.item_code = item.item_code
-		row.item_name = item.item_name
-		row.uom = item.uom
-		row.quantity = item.qty
-		row.rate = item.rate
-		row.amount = (item.qty or 0) * (item.rate or 0)
+    doc.insert(ignore_permissions=True)
+    frappe.db.commit()
 
-	doc.insert(ignore_permissions=True)
-	frappe.db.commit()
-
-	return doc.name
+    return doc.name

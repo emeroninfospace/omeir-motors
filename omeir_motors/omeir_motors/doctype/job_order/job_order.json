@@ -227,13 +227,13 @@
   },
   {
    "fieldname": "in_time",
-   "fieldtype": "Datetime",
-   "label": "In Time"
+   "fieldtype": "Date",
+   "label": "Expected Date"
   },
   {
    "fieldname": "out_time",
-   "fieldtype": "Datetime",
-   "label": "Out Time"
+   "fieldtype": "Date",
+   "label": "Expected Delivery Date"
   },
   {
    "fieldname": "quotation",
@@ -253,7 +253,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nMulti\nImport",
+   "options": "\nMultibrand\nPhoto",
    "read_only": 1
   }
  ],
@@ -261,7 +261,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-23 17:18:28.523510",
+ "modified": "2026-03-24 13:31:16.394093",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",

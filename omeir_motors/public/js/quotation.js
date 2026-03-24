@@ -29,5 +29,13 @@ frappe.ui.form.on('Quotation', {
 			}, 'Create');
 		}
         
+    },
+     party_name: function(frm) {
+        if (frm.doc.party_name) {
+            frappe.db.get_value('Customer', frm.doc.party_name, 'custom_type')
+                .then(r => {
+                    frm.set_value('custom_type', (r.message && r.message.custom_type) || '');
+                });
+        }
     }
 });
