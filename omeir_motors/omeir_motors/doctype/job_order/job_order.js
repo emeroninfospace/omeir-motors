@@ -42,16 +42,6 @@ frappe.ui.form.on('Job Order', {
 });
 
 
-frappe.ui.form.on('Job Order Item', {
-    quantity: function(frm, cdt, cdn) {
-        calculate_amount(cdt, cdn);
-        calculate_totals(frm);
-    },
-    rate: function(frm, cdt, cdn) {
-        calculate_amount(cdt, cdn);
-        calculate_totals(frm);
-    }
-});
 
 function calculate_amount(cdt, cdn) {
     let row = locals[cdt][cdn];
@@ -72,3 +62,41 @@ function calculate_totals(frm) {
     frm.set_value('total_quantity', total_qty);
     frm.set_value('total_amount', total_amt);
 }
+
+
+frappe.ui.form.on('Job Order Item', {
+    item_code: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+
+        if (row.item_code) {
+
+            frappe.model.set_value(cdt, cdn, 'quantity', 1);
+
+            frappe.db.get_value('Item Price', {
+                item_code: row.item_code,
+                price_list: "Standard Selling",
+                selling: 1
+            }, 'price_list_rate').then(r => {
+                frappe.model.set_value(cdt, cdn, 'rate', (r.message && r.message.price_list_rate) || 0);
+                calculate_amount(cdt, cdn);
+                calculate_totals(frm);
+            });
+        }
+    },
+
+    quantity: function(frm, cdt, cdn) {
+        calculate_amount(cdt, cdn);
+        calculate_totals(frm);
+        let row = locals[cdt][cdn];
+        let amount = (row.quantity || 0) * (row.rate || 0);
+        frappe.model.set_value(cdt, cdn, 'amount', amount);
+    },
+
+    rate: function(frm, cdt, cdn) {
+        calculate_amount(cdt, cdn);
+        calculate_totals(frm);
+        let row = locals[cdt][cdn];
+        let amount = (row.quantity || 0) * (row.rate || 0);
+        frappe.model.set_value(cdt, cdn, 'amount', amount);
+    }
+});

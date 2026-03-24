@@ -7,11 +7,13 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
+
 	def before_save(self):
 		self.validate_and_update_vehicle_odometer()
 
 	def on_submit(self):
 		self.validate_and_update_vehicle_odometer()
+		self.create_vehicle_log()
 
 	def validate_and_update_vehicle_odometer(self):
 		if not self.vehicle or not self.odometer_value_last:
@@ -36,6 +38,36 @@ class JobOrder(Document):
 				"last_odometer",
 				job_odometer
 			)
+
+
+	def create_vehicle_log(self):
+		if not self.vehicle:
+			return
+
+		vehicle_doc = frappe.get_doc("Vehicle", self.vehicle)
+
+		log = frappe.new_doc("Vehicle Log")
+		log.custom_job_order = self.name
+		log.vehicle = self.vehicle
+		log.model = self.model or vehicle_doc.model
+		log.license_plate = vehicle_doc.license_plate
+		log.custom_model = self.model
+		log.make = self.make
+		log.date = frappe.utils.nowdate()
+		log.last_odometer = self.odometer_value_last
+		log.odometer = self.odometer_value_last
+
+		for item in self.job_order_items:
+			row = log.append("custom_service_items", {})
+			row.item_code = item.item_code
+			row.item_name = item.item_name
+			row.uom = item.uom
+			row.quantity = item.quantity
+			row.rate = item.rate
+			row.amount = (item.quantity or 0) * (item.rate or 0)
+
+		log.insert(ignore_permissions=True)
+		log.submit()
 
 
 import frappe

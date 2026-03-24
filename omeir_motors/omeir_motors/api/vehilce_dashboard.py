@@ -1,14 +1,19 @@
 import frappe
-from frappe.utils import add_months, today, date_diff, nowdate
+from frappe.utils import add_months, today, date_diff, nowdate, getdate
 from frappe import _
 
 @frappe.whitelist()
-def get_dashboard_stats():
+def get_dashboard_stats(from_date=None, to_date=None):
+    filters = "vl.docstatus = 1"
+    if from_date:
+        filters += f" AND vl.date >= '{from_date}'"
+    if to_date:
+        filters += f" AND vl.date <= '{to_date}'"
     
-    vehicles_with_service = frappe.db.sql("""
+    vehicles_with_service = frappe.db.sql(f"""
         SELECT DISTINCT vl.license_plate
         FROM `tabVehicle Log` vl
-        WHERE vl.docstatus = 1
+        WHERE {filters}
     """, as_dict=True)
     
     total_vehicles = len(vehicles_with_service)
@@ -20,38 +25,38 @@ def get_dashboard_stats():
     
     for v in vehicles_with_service:
         vehicle = v.license_plate
-        status, next_service = get_vehicle_status(vehicle)
+        status, next_service = get_vehicle_status(vehicle, from_date, to_date)
         
         if status == "Overdue":
             overdue += 1
         elif status == "Due Soon":
             due_soon += 1
-        else:
+        elif status == "OK":
             healthy += 1
             
         if next_service:
             upcoming_services.append(next_service)
     
-    monthly_expense = frappe.db.sql("""
+    monthly_expense = frappe.db.sql(f"""
         SELECT 
             DATE_FORMAT(vl.date, '%Y-%m') as month,
-            SUM(vs.expense_amount) as total_expense
+            SUM(vsi.amount) as total_expense
         FROM `tabVehicle Log` vl
-        LEFT JOIN `tabVehicle Service` vs ON vs.parent = vl.name
-        WHERE vl.docstatus = 1 AND vs.expense_amount > 0
+        LEFT JOIN `tabVehicle Service Item` vsi ON vsi.parent = vl.name
+        WHERE {filters} AND vsi.amount > 0
         GROUP BY DATE_FORMAT(vl.date, '%Y-%m')
         ORDER BY month DESC
         LIMIT 6
     """, as_dict=True)
     
-    top_services = frappe.db.sql("""
+    top_services = frappe.db.sql(f"""
         SELECT 
-            vs.service_item,
+            vsi.item_name as service_item,
             COUNT(*) as service_count,
-            SUM(vs.expense_amount) as total_expense
-        FROM `tabVehicle Service` vs
-        WHERE vs.parenttype = 'Vehicle Log'
-        GROUP BY vs.service_item
+            SUM(vsi.amount) as total_expense
+        FROM `tabVehicle Service Item` vsi
+        WHERE vsi.parenttype = 'Vehicle Log'
+        GROUP BY vsi.item_name
         ORDER BY service_count DESC
         LIMIT 5
     """, as_dict=True)
@@ -69,68 +74,48 @@ def get_dashboard_stats():
     }
 
 @frappe.whitelist()
-def get_vehicle_status(license_plate):
+def get_vehicle_status(license_plate, from_date=None, to_date=None):
+    filters = f"vl.license_plate = '{license_plate}' AND vl.docstatus = 1"
+    if from_date:
+        filters += f" AND vl.date >= '{from_date}'"
+    if to_date:
+        filters += f" AND vl.date <= '{to_date}'"
     
-    last_service = frappe.db.sql("""
+    last_service = frappe.db.sql(f"""
         SELECT 
             vl.date,
             vl.odometer,
-            vs.service_item,
-            vs.type,
-            vs.frequency,
-            vs.custom_service_interval_km
+            vsi.item_name as service_item,
+            vsi.quantity,
+            vsi.amount
         FROM `tabVehicle Log` vl
-        LEFT JOIN `tabVehicle Service` vs ON vs.parent = vl.name
-        WHERE vl.license_plate = %s AND vl.docstatus = 1
+        LEFT JOIN `tabVehicle Service Item` vsi ON vsi.parent = vl.name
+        WHERE {filters}
         ORDER BY vl.date DESC, vl.odometer DESC
         LIMIT 1
-    """, license_plate, as_dict=True)
+    """, as_dict=True)
     
     if not last_service:
         return "No Service", None
     
     last = last_service[0]
     
-    next_date = None
-    next_km = None
-    status = "Healthy"
-    
-    if last.frequency == "Monthly":
-        next_date = add_months(last.date, 1)
-    elif last.frequency == "Quarterly":
-        next_date = add_months(last.date, 3)
-    elif last.frequency == "Half Yearly":
-        next_date = add_months(last.date, 6)
-    elif last.frequency == "Yearly":
-        next_date = add_months(last.date, 12)
-    elif last.frequency == "Mileage" and last.custom_service_interval_km:
-        next_km = last.odometer + last.custom_service_interval_km
-    
     current_odometer = frappe.db.get_value("Vehicle", license_plate, "last_odometer") or 0
     
-    days_remaining = 999
-    km_remaining = 99999
+    next_date = add_months(last.date, 1)
+    days_remaining = date_diff(next_date, nowdate())
     
-    if next_date:
-        days_remaining = date_diff(next_date, nowdate())
-        if days_remaining <= 0:
-            status = "Overdue"
-        elif days_remaining <= 7:
-            status = "Due Soon"
-    
-    if next_km:
-        km_remaining = next_km - current_odometer
-        if km_remaining <= 0:
-            status = "Overdue"
-        elif km_remaining <= 500:
-            status = "Due Soon"
+    if days_remaining <= 0:
+        status = "Overdue"
+    elif days_remaining <= 7:
+        status = "Due Soon"
+    else:
+        status = "OK"
     
     next_service = {
         "vehicle": license_plate,
         "next_date": next_date,
-        "next_km": next_km,
         "days_remaining": days_remaining,
-        "km_remaining": km_remaining,
         "service_item": last.service_item,
         "status": status
     }
@@ -138,35 +123,28 @@ def get_vehicle_status(license_plate):
     return status, next_service
 
 @frappe.whitelist()
-def get_service_history(license_plate=None, limit=10):
-    
+def get_service_history(license_plate=None, limit=10, from_date=None, to_date=None):
     conditions = "vl.docstatus = 1"
     if license_plate:
         conditions += f" AND vl.license_plate = '{license_plate}'"
+    if from_date:
+        conditions += f" AND vl.date >= '{from_date}'"
+    if to_date:
+        conditions += f" AND vl.date <= '{to_date}'"
     
     history = frappe.db.sql(f"""
         SELECT 
             vl.date,
             vl.license_plate as vehicle,
             vl.odometer,
-            vs.service_item,
-            vs.type,
-            vs.frequency,
-            vs.expense_amount,
-            CASE 
-                WHEN vs.frequency = 'Monthly' THEN DATE_ADD(vl.date, INTERVAL 1 MONTH)
-                WHEN vs.frequency = 'Quarterly' THEN DATE_ADD(vl.date, INTERVAL 3 MONTH)
-                WHEN vs.frequency = 'Half Yearly' THEN DATE_ADD(vl.date, INTERVAL 6 MONTH)
-                WHEN vs.frequency = 'Yearly' THEN DATE_ADD(vl.date, INTERVAL 12 MONTH)
-                ELSE NULL
-            END as next_service_date,
-            CASE 
-                WHEN vs.frequency = 'Mileage' AND vs.custom_service_interval_km 
-                THEN vl.odometer + vs.custom_service_interval_km
-                ELSE NULL
-            END as next_service_km
+            vl.custom_custom_model,
+            vsi.item_name as service_item,
+            vsi.quantity,
+            vsi.rate,
+            vsi.amount,
+            DATE_ADD(vl.date, INTERVAL 1 MONTH) as next_service_date
         FROM `tabVehicle Log` vl
-        LEFT JOIN `tabVehicle Service` vs ON vs.parent = vl.name
+        LEFT JOIN `tabVehicle Service Item` vsi ON vsi.parent = vl.name
         WHERE {conditions}
         ORDER BY vl.date DESC
         LIMIT %s
@@ -175,27 +153,32 @@ def get_service_history(license_plate=None, limit=10):
     return history
 
 @frappe.whitelist()
-def get_expense_chart_data():
+def get_expense_chart_data(from_date=None, to_date=None):
+    conditions = "vl.docstatus = 1 AND vsi.amount > 0"
+    if from_date:
+        conditions += f" AND vl.date >= '{from_date}'"
+    if to_date:
+        conditions += f" AND vl.date <= '{to_date}'"
     
-    monthly = frappe.db.sql("""
+    monthly = frappe.db.sql(f"""
         SELECT 
             DATE_FORMAT(vl.date, '%Y-%m') as month,
-            SUM(vs.expense_amount) as total
+            SUM(vsi.amount) as total
         FROM `tabVehicle Log` vl
-        LEFT JOIN `tabVehicle Service` vs ON vs.parent = vl.name
-        WHERE vl.docstatus = 1 AND vs.expense_amount > 0
+        LEFT JOIN `tabVehicle Service Item` vsi ON vsi.parent = vl.name
+        WHERE {conditions}
         GROUP BY DATE_FORMAT(vl.date, '%Y-%m')
         ORDER BY month
         LIMIT 12
     """, as_dict=True)
     
-    by_vehicle = frappe.db.sql("""
+    by_vehicle = frappe.db.sql(f"""
         SELECT 
             vl.license_plate as vehicle,
-            SUM(vs.expense_amount) as total
+            SUM(vsi.amount) as total
         FROM `tabVehicle Log` vl
-        LEFT JOIN `tabVehicle Service` vs ON vs.parent = vl.name
-        WHERE vl.docstatus = 1 AND vs.expense_amount > 0
+        LEFT JOIN `tabVehicle Service Item` vsi ON vsi.parent = vl.name
+        WHERE {conditions}
         GROUP BY vl.license_plate
         ORDER BY total DESC
         LIMIT 5

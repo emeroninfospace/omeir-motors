@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SN-.#####",
+ "creation": "2026-03-23 17:26:48.558274",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_info_section",
+  "customer",
+  "customer_address",
+  "column_break_mshq",
+  "type",
+  "quotation",
+  "vehicle_info_section",
+  "vehicle_info",
+  "service_items_section",
+  "service_items",
+  "section_break_ewbq",
+  "total_quantity",
+  "column_break_ssbo",
+  "total_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_primary_address",
+   "fieldname": "customer_address",
+   "fieldtype": "Link",
+   "label": "Customer Address",
+   "options": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mshq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nMultibrand\nPhoto",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer_info_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Info"
+  },
+  {
+   "fieldname": "vehicle_info_section",
+   "fieldtype": "Section Break",
+   "label": "Vehicle Info"
+  },
+  {
+   "fieldname": "service_items_section",
+   "fieldtype": "Section Break",
+   "label": "Service Items"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Service Item"
+  },
+  {
+   "fieldname": "vehicle_info",
+   "fieldtype": "Long Text",
+   "label": "Vehicle Info"
+  },
+  {
+   "fieldname": "section_break_ewbq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ssbo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_quantity",
+   "fieldtype": "Float",
+   "label": "Total Quantity",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-24 13:23:40.414722",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Service Notification",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

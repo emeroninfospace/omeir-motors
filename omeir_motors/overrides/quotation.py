@@ -9,6 +9,12 @@ def create_job_order(source_name, target_doc=None):
         target.priority = "Medium"  
         target.expected_completion_date = None
         target.posting_date = source.transaction_date or nowdate()
+        target.quotation = source.name
+        target.vehicle = source.custom_vehicle
+        target.data_toqf = source.custom_chasis_number
+        target.model = source.custom_model
+        target.make = source.custom_make
+        target.odometer_value_last = source.custom_odometer_value_last
         
         if target.get("job_order_items"):
             total_qty = sum([flt(item.quantity) for item in target.job_order_items])
@@ -66,3 +72,31 @@ def create_job_order(source_name, target_doc=None):
     )
 
     return doc
+
+
+
+@frappe.whitelist()
+def create_from_quotation(quotation):
+    quotation_doc = frappe.get_doc("Quotation", quotation)
+
+    doc = frappe.new_doc("Service Notification")
+
+    doc.customer = quotation_doc.party_name
+    doc.quotation = quotation_doc.name
+    doc.type = quotation_doc.custom_type
+    doc.total_quantity = quotation_doc.total_qty
+    doc.total_amount = quotation_doc.total
+
+    for item in quotation_doc.items:
+        row = doc.append("service_items", {})
+        row.item_code = item.item_code
+        row.item_name = item.item_name
+        row.uom = item.uom
+        row.quantity = item.qty
+        row.rate = item.rate
+        row.amount = (item.qty or 0) * (item.rate or 0)
+
+    doc.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    return doc.name

@@ -185,6 +185,10 @@ doctype_js = {"Quotation" : "public/js/quotation.js"}
 # 	"Task": "omeir_motors.task.get_dashboard_data"
 # }
 
+override_doctype_dashboards = {
+	"Quotation": "omeir_motors.overrides.quotation_dashboard.get_data"
+}
+
 # exempt linked doctypes from being automatically cancelled
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
