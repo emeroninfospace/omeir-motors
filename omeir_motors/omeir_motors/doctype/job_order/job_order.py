@@ -145,3 +145,9 @@ def make_sales_invoice(source_name, target_doc=None):
     )
 
     return doc
+
+
+@frappe.whitelist()
+def get_items_for_allocation(job_order):
+	doc = frappe.get_doc("Job Order", job_order)
+	return doc.job_order_items

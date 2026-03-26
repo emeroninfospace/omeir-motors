@@ -12,39 +12,87 @@ frappe.ui.form.on('Job Order', {
                 };
             };
         }
+
         if (frm.doc.docstatus === 1) {
-            frm.add_custom_button('Sales Invoice', () => {
-                frappe.call({
-                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
-                    args: {
-                        source_name: frm.doc.name
-                    },
-                    callback: function(r) {
-                        if (!r.exc) {
-                            let doc = frappe.model.sync(r.message)[0];
-                            frappe.set_route('Form', doc.doctype, doc.name);
-                        }
+            Promise.all([
+                frappe.db.get_list('Technician Allocation', {
+                    filters: { job_order: frm.doc.name },
+                    limit: 1
+                }),
+                frappe.db.get_list('Sales Invoice', {
+                    filters: { custom_job_order: frm.doc.name },
+                    limit: 1
+                })
+            ]).then(([alloc, invoice]) => {
+
+                if (!invoice.length) {
+                    frm.add_custom_button('Sales Invoice', () => {
+                        frappe.call({
+                            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
+                            args: {
+                                source_name: frm.doc.name
+                            },
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    let doc = frappe.model.sync(r.message)[0];
+                                    frappe.set_route('Form', doc.doctype, doc.name);
+                                }
+                            }
+                        });
+                    }, 'Create');
+                }
+
+                if (!alloc.length) {
+                    frm.add_custom_button('Technician Allocation', () => {
+
+                        frappe.call({
+                            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.get_items_for_allocation',
+                            args: {
+                                job_order: frm.doc.name
+                            },
+                            callback: function(r) {
+
+                                if (r.message) {
+
+                                    frappe.new_doc('Technician Allocation', {}, (doc) => {
+
+                                        doc.job_order = frm.doc.name;
+                                        doc.start_date = frappe.datetime.now_datetime();
+
+                                        (r.message || []).forEach(item => {
+                                            let row = frappe.model.add_child(doc, 'table_yuoo');
+
+                                            row.item_code = item.item_code;
+                                            row.item_name = item.item_name;
+                                            row.uom = item.uom;
+                                            row.quantity = item.quantity;
+                                            row.rate = item.rate;
+                                            row.amount = item.amount;
+                                        });
+
+                                    });
+
+                                }
+                            }
+                        });
+
+                    }, 'Create');
+                }
+
+            });
+        }
+    },
+
+    vehicle: function(frm) {
+        if (frm.doc.vehicle) {
+            frappe.db.get_value('Vehicle', frm.doc.vehicle, 'last_odometer')
+                .then(r => {
+                    if (r.message) {
+                        frm.set_value('odometer_value_last', r.message.last_odometer);
                     }
                 });
-            }, 'Create');
         }
-        frm.add_custom_button('Technician Allocation', () => {
-            frappe.new_doc('Technician Allocation', {
-                start_date: frappe.datetime.get_today(),
-                job_order: frm.doc.name,
-            });
-        }, 'Create');
-    },
-    vehicle: function(frm) {
-		if (frm.doc.vehicle) {
-			frappe.db.get_value('Vehicle', frm.doc.vehicle, 'last_odometer')
-				.then(r => {
-					if (r.message) {
-						frm.set_value('odometer_value_last', r.message.last_odometer);
-					}
-				});
-		}
-	}
+    }
 });
 
 

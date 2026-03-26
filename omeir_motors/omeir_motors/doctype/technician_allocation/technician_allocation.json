@@ -6,13 +6,21 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "technician_info_section",
   "employee",
   "status",
   "job_order",
   "column_break_cdmd",
   "start_date",
   "end_date",
-  "total_duration"
+  "total_duration",
+  "items_section",
+  "table_yuoo",
+  "amended_from",
+  "section_break_munc",
+  "total_quantity",
+  "column_break_ocnu",
+  "total_amount"
  ],
  "fields": [
   {
@@ -37,13 +45,13 @@
   },
   {
    "fieldname": "start_date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Start Date"
   },
   {
    "fieldname": "end_date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "End Date"
   },
@@ -60,13 +68,60 @@
    "label": "Job Order",
    "options": "Job Order",
    "read_only": 1
+  },
+  {
+   "fieldname": "technician_info_section",
+   "fieldtype": "Section Break",
+   "label": "Technician Info"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "table_yuoo",
+   "fieldtype": "Table",
+   "options": "Technician Service Item"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Technician Allocation",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_munc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "job_order.total_quantity",
+   "fieldname": "total_quantity",
+   "fieldtype": "Float",
+   "label": "Total Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ocnu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "job_order.total_amount",
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-26 12:07:01.014243",
+ "modified": "2026-03-26 14:34:56.915614",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Allocation",
