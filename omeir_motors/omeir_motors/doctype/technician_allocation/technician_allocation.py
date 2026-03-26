@@ -3,14 +3,14 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate
+from frappe.utils import get_datetime
 
 
 class TechnicianAllocation(Document):
 	def validate(self):
 		if self.start_date and self.end_date:
-			diff = (getdate(self.end_date) - getdate(self.start_date)).days
-			self.total_duration = diff * 24 * 60 * 60
+			diff = (get_datetime(self.end_date) - get_datetime(self.start_date)).total_seconds()
+			self.total_duration = diff
 	
 	def on_submit(self):
 		self.db_set("status", "Completed")
