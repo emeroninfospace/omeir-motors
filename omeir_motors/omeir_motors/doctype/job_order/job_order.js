@@ -13,7 +13,7 @@ frappe.ui.form.on('Job Order', {
             };
         }
         if (frm.doc.docstatus === 1) {
-            frm.add_custom_button('Create Sales Invoice', () => {
+            frm.add_custom_button('Sales Invoice', () => {
                 frappe.call({
                     method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
                     args: {
@@ -28,6 +28,12 @@ frappe.ui.form.on('Job Order', {
                 });
             }, 'Create');
         }
+        frm.add_custom_button('Technician Allocation', () => {
+            frappe.new_doc('Technician Allocation', {
+                start_date: frappe.datetime.get_today(),
+                job_order: frm.doc.name,
+            });
+        }, 'Create');
     },
     vehicle: function(frm) {
 		if (frm.doc.vehicle) {

@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class TechnicianAllocation(Document):
+class TechnicianEmployeeChild(Document):
 	pass
