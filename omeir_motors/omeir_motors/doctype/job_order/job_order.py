@@ -83,6 +83,14 @@ def make_sales_invoice(source_name, target_doc=None):
         
         if source.company:
             target.company = source.company
+        if source.vehicle:
+            target.custom_vehicle_no = source.vehicle
+        if source.odometer_value_last:
+            target.custom_odometer = source.odometer_value_last
+        if source.vehicle_in:
+            target.custom_vehicle_in = source.vehicle_in
+        if source.vehicle_out:
+            target.custom_vehicle_out = source.vehicle_out
             
         if target.get("items"):
             total_qty = sum([flt(item.qty) for item in target.items])

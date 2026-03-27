@@ -16,11 +16,11 @@ frappe.ui.form.on('Job Order', {
         if (frm.doc.docstatus === 1) {
             Promise.all([
                 frappe.db.get_list('Technician Allocation', {
-                    filters: { job_order: frm.doc.name },
+                    filters: { job_order: frm.doc.name , docstatus: ["in", [0, 1]]},
                     limit: 1
                 }),
                 frappe.db.get_list('Sales Invoice', {
-                    filters: { custom_job_order: frm.doc.name },
+                    filters: { custom_job_order: frm.doc.name, docstatus: ["in", [0, 1]]},
                     limit: 1
                 })
             ]).then(([alloc, invoice]) => {
@@ -81,6 +81,16 @@ frappe.ui.form.on('Job Order', {
 
             });
         }
+       if (frm.doc.docstatus === 2) {
+            frm.page.set_indicator('Cancelled', 'grey');
+        } else if (frm.doc.status === "Completed") {
+            frm.page.set_indicator('Completed', 'green');
+        } else if (frm.doc.status === "In Progress") {
+            frm.page.set_indicator('In Progress', 'orange');
+        } else {
+            frm.page.set_indicator('Pending', 'red');
+        }
+                
     },
 
     vehicle: function(frm) {

@@ -11,6 +11,30 @@ class TechnicianAllocation(Document):
 		if self.start_date and self.end_date:
 			diff = (get_datetime(self.end_date) - get_datetime(self.start_date)).total_seconds()
 			self.total_duration = diff
+		
+		if self.job_order:
+			frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
 	
 	def on_submit(self):
 		self.db_set("status", "Completed")
+		if self.job_order:
+			frappe.db.set_value("Job Order", self.job_order, "status", "Completed")
+	
+	def on_cancel(self):
+		self.db_set("status", "Cancelled")
+		if self.job_order:
+			update_job_order_status(self.job_order)
+	
+
+def update_job_order_status(job_order):
+	has_allocation = frappe.db.exists("Technician Allocation", {
+		"job_order": job_order,
+		"docstatus": ["!=", 2]
+	})
+
+	if has_allocation:
+		status = "In Progress"
+	else:
+		status = "Pending"
+
+	frappe.db.set_value("Job Order", job_order, "status", status)

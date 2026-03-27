@@ -36,7 +36,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "\nPending\nCompleted",
+   "options": "\nPending\nCompleted\nCancelled",
    "read_only": 1
   },
   {
@@ -121,7 +121,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-26 14:34:56.915614",
+ "modified": "2026-03-27 11:18:14.655480",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Allocation",

@@ -8,6 +8,13 @@ frappe.ui.form.on("Technician Allocation", {
         if (frm.doc.status === "Completed") {
             frm.page.set_indicator('Completed', 'green');
         }
+        if (frm.doc.docstatus === 2) {
+            frm.page.set_indicator('Cancelled', 'grey');
+        } else if (frm.doc.status === "Completed") {
+            frm.page.set_indicator('Completed', 'green');
+        } else {
+            frm.page.set_indicator('Pending', 'red');
+        }
 	},
 });
 
