@@ -106,7 +106,8 @@
   },
   {
    "fieldname": "section_break_munc",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fetch_from": "job_order.total_quantity_service",
@@ -129,6 +130,7 @@
   {
    "fieldname": "complaints_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Complaints"
   },
   {
@@ -151,7 +153,8 @@
   },
   {
    "fieldname": "section_break_niwb",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fieldname": "total_quantity_service",
@@ -174,7 +177,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-27 20:45:39.811165",
+ "modified": "2026-03-28 12:32:16.277708",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Allocation",

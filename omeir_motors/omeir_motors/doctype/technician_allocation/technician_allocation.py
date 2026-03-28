@@ -33,8 +33,6 @@ class TechnicianAllocation(Document):
 			if part.item_code in existing_items_map:
 				jo_row = existing_items_map[part.item_code]
 				jo_row.quantity = part.quantity
-				jo_row.rate = part.rate
-				jo_row.amount = part.amount
 
 			else:
 				job_order.append("job_order_items", {
@@ -42,11 +40,24 @@ class TechnicianAllocation(Document):
 					"item_name": part.item_name,
 					"uom": part.uom,
 					"quantity": part.quantity,
-					"rate": part.rate,
-					"amount": part.amount
 				})
-		job_order.total_quantity = self.total_quantity_service
-		job_order.total_amount = self.total_amount_service
+
+		total_qty = 0
+		total_amt = 0
+
+		for row in job_order.job_order_items:
+			qty = row.quantity or 0
+			rate = row.rate or 0
+
+			row.amount = qty * rate
+
+			total_qty += qty
+			total_amt += row.amount
+
+		job_order.total_quantity = total_qty
+		job_order.total_amount = total_amt
+
+		job_order.total_duration = self.total_duration
 		job_order.save(ignore_permissions=True)
 		
 	

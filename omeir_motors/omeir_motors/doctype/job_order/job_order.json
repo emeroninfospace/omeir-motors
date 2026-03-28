@@ -15,6 +15,7 @@
   "quotation",
   "material_request",
   "status",
+  "total_duration",
   "column_break_atxk",
   "customer",
   "customer_address",
@@ -31,13 +32,11 @@
   "vehicle",
   "model",
   "fuel_type",
-  "in_time",
   "fuel_level",
   "column_break_ekei",
   "odometer_value_last",
   "make",
   "data_toqf",
-  "out_time",
   "vehicle_in",
   "vehicle_out",
   "section_break_ibcb",
@@ -129,9 +128,11 @@
    "fieldname": "vehicle",
    "fieldtype": "Link",
    "label": "Vehicle",
-   "options": "Vehicle"
+   "options": "Vehicle",
+   "reqd": 1
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fetch_from": "vehicle.custom_custom_model",
    "fieldname": "model",
    "fieldtype": "Data",
@@ -143,6 +144,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fetch_from": "vehicle.make",
    "fieldname": "make",
    "fieldtype": "Data",
@@ -150,6 +152,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fetch_from": "vehicle.fuel_type",
    "fieldname": "fuel_type",
    "fieldtype": "Data",
@@ -157,6 +160,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fieldname": "odometer_value_last",
    "fieldtype": "Data",
    "label": "Odometer Value (Last)"
@@ -243,16 +247,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "in_time",
-   "fieldtype": "Date",
-   "label": "Expected Date"
-  },
-  {
-   "fieldname": "out_time",
-   "fieldtype": "Date",
-   "label": "Expected Delivery Date"
-  },
-  {
    "fieldname": "quotation",
    "fieldtype": "Link",
    "label": "Quotation",
@@ -260,6 +254,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fetch_from": "vehicle.chassis_no",
    "fieldname": "data_toqf",
    "fieldtype": "Data",
@@ -282,11 +277,13 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fieldname": "vehicle_in",
    "fieldtype": "Datetime",
    "label": "Vehicle In"
   },
   {
+   "depends_on": "eval:doc.vehicle",
    "fieldname": "vehicle_out",
    "fieldtype": "Datetime",
    "label": "Vehicle Out"
@@ -294,6 +291,7 @@
   {
    "fieldname": "section_break_ibcb",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Complaints"
   },
   {
@@ -345,13 +343,19 @@
    "label": "Material Request",
    "options": "Material Request",
    "read_only": 1
+  },
+  {
+   "fieldname": "total_duration",
+   "fieldtype": "Duration",
+   "label": "Total Work Duration",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-28 08:46:23.483727",
+ "modified": "2026-03-28 12:35:35.306579",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
