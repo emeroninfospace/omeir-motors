@@ -130,7 +130,8 @@ doctype_js = {"Quotation" : "public/js/quotation.js"}
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest"
+	"Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest",
+    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice",
 }
 
 # Document Events
