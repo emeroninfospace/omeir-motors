@@ -14,13 +14,21 @@
   "start_date",
   "end_date",
   "total_duration",
+  "complaints_section",
+  "complaint_details",
   "items_section",
   "table_yuoo",
   "amended_from",
   "section_break_munc",
   "total_quantity",
   "column_break_ocnu",
-  "total_amount"
+  "total_amount",
+  "parts_items_section",
+  "parts_items",
+  "section_break_niwb",
+  "total_quantity_service",
+  "column_break_biuc",
+  "total_amount_service"
  ],
  "fields": [
   {
@@ -77,11 +85,13 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
-   "label": "Items"
+   "label": "Service Item",
+   "read_only": 1
   },
   {
    "fieldname": "table_yuoo",
    "fieldtype": "Table",
+   "label": "Service Item",
    "options": "Technician Service Item"
   },
   {
@@ -99,7 +109,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "fetch_from": "job_order.total_quantity",
+   "fetch_from": "job_order.total_quantity_service",
    "fieldname": "total_quantity",
    "fieldtype": "Float",
    "label": "Total Quantity",
@@ -110,8 +120,51 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "job_order.total_amount",
+   "fetch_from": "job_order.total_amount_service",
    "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "complaints_section",
+   "fieldtype": "Section Break",
+   "label": "Complaints"
+  },
+  {
+   "fetch_from": "job_order.complaint_details",
+   "fieldname": "complaint_details",
+   "fieldtype": "Long Text",
+   "label": "Complaint Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "parts_items_section",
+   "fieldtype": "Section Break",
+   "label": "Parts Items"
+  },
+  {
+   "fieldname": "parts_items",
+   "fieldtype": "Table",
+   "label": "Parts Items",
+   "options": "Parts Items"
+  },
+  {
+   "fieldname": "section_break_niwb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_quantity_service",
+   "fieldtype": "Float",
+   "label": "Total Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_biuc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_amount_service",
    "fieldtype": "Currency",
    "label": "Total Amount",
    "read_only": 1
@@ -121,7 +174,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-27 11:18:14.655480",
+ "modified": "2026-03-27 20:45:39.811165",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Allocation",

@@ -6,7 +6,7 @@ frappe.listview_settings['Job Order'] = {
             return ["Completed", "green", "status,=,Completed"];
         } else if (doc.status === "In Progress") {
             return ["In Progress", "orange", "status,=,In Progress"];
-        } else {
+        } else if (doc.status === "Pending") {
             return ["Pending", "red", "status,=,Pending"];
         }
     }

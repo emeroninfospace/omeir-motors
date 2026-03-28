@@ -8,68 +8,81 @@ from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
 
-	def before_save(self):
-		self.validate_and_update_vehicle_odometer()
+    def before_submit(self):
+        allocation = frappe.db.exists(
+            "Technician Allocation",
+            {
+                "job_order": self.name,
+                "docstatus": ["in", [0, 1]]
+            }
+        )
 
-	def on_submit(self):
-		self.validate_and_update_vehicle_odometer()
-		self.create_vehicle_log()
+        if not allocation:
+            frappe.throw("Please create Technician Allocation before submitting Job Order.")
 
-	def validate_and_update_vehicle_odometer(self):
-		if not self.vehicle or not self.odometer_value_last:
-			return
+    def before_save(self):
+        self.validate_and_update_vehicle_odometer()
 
-		vehicle_odometer = frappe.db.get_value(
-			"Vehicle", self.vehicle, "last_odometer"
-		)
+    def on_submit(self):
+        self.validate_and_update_vehicle_odometer()
+        self.create_vehicle_log()
 
-		job_odometer = float(self.odometer_value_last or 0)
-		vehicle_odometer = float(vehicle_odometer or 0)
+    def validate_and_update_vehicle_odometer(self):
+        if not self.vehicle or not self.odometer_value_last:
+            return
 
-		if job_odometer < vehicle_odometer:
-			frappe.throw(
-				f"Odometer cannot be less than current vehicle reading ({vehicle_odometer})"
-			)
+        vehicle_odometer = frappe.db.get_value(
+            "Vehicle", self.vehicle, "last_odometer"
+        )
 
-		if job_odometer > vehicle_odometer:
-			frappe.db.set_value(
-				"Vehicle",
-				self.vehicle,
-				"last_odometer",
-				job_odometer
-			)
+        job_odometer = float(self.odometer_value_last or 0)
+        vehicle_odometer = float(vehicle_odometer or 0)
 
+        if job_odometer < vehicle_odometer:
+            frappe.throw(
+                f"Odometer cannot be less than current vehicle reading ({vehicle_odometer})"
+            )
 
-	def create_vehicle_log(self):
-		if not self.vehicle:
-			return
-
-		vehicle_doc = frappe.get_doc("Vehicle", self.vehicle)
-
-		log = frappe.new_doc("Vehicle Log")
-		log.custom_job_order = self.name
-		log.vehicle = self.vehicle
-		log.model = self.model or vehicle_doc.model
-		log.license_plate = vehicle_doc.license_plate
-		log.custom_model = self.model
-		log.make = self.make
-		log.date = frappe.utils.nowdate()
-		log.last_odometer = self.odometer_value_last
-		log.odometer = self.odometer_value_last
-
-		for item in self.job_order_items:
-			row = log.append("custom_service_items", {})
-			row.item_code = item.item_code
-			row.item_name = item.item_name
-			row.uom = item.uom
-			row.quantity = item.quantity
-			row.rate = item.rate
-			row.amount = (item.quantity or 0) * (item.rate or 0)
-
-		log.insert(ignore_permissions=True)
-		log.submit()
+        if job_odometer > vehicle_odometer:
+            frappe.db.set_value(
+                "Vehicle",
+                self.vehicle,
+                "last_odometer",
+                job_odometer
+            )
 
 
+    def create_vehicle_log(self):
+        if not self.vehicle:
+            return
+
+        vehicle_doc = frappe.get_doc("Vehicle", self.vehicle)
+
+        log = frappe.new_doc("Vehicle Log")
+        log.flags.ignore_mandatory = True
+        log.custom_job_order = self.name
+        log.vehicle = self.vehicle
+        log.model = self.model or vehicle_doc.model
+        log.license_plate = vehicle_doc.license_plate
+        log.custom_model = self.model
+        log.make = self.make
+        log.date = frappe.utils.nowdate()
+        log.last_odometer = self.odometer_value_last
+        log.odometer = self.odometer_value_last
+
+        for item in self.job_order_items:
+            row = log.append("custom_service_items", {})
+            row.item_code = item.item_code
+            row.item_name = item.item_name
+            row.uom = item.uom
+            row.quantity = item.quantity
+            row.rate = item.rate
+            row.amount = (item.quantity or 0) * (item.rate or 0)
+
+        log.insert(ignore_permissions=True)
+        log.submit()
+
+    
 import frappe
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt, nowdate
@@ -158,4 +171,109 @@ def make_sales_invoice(source_name, target_doc=None):
 @frappe.whitelist()
 def get_items_for_allocation(job_order):
 	doc = frappe.get_doc("Job Order", job_order)
-	return doc.job_order_items
+	return doc.service_item
+
+
+@frappe.whitelist()
+def make_quotation(source_name):
+    job_order = frappe.get_doc("Job Order", source_name)
+
+    quotation = frappe.new_doc("Quotation")
+
+    quotation.party_name = job_order.customer
+    quotation.custom_job_order = job_order.name
+    quotation.custom_vehicle = job_order.vehicle
+    quotation.custom_driver = job_order.driver
+
+    quotation.custom_model = job_order.model
+    quotation.custom_make = job_order.make
+    quotation.custom_fuel_type = job_order.fuel_type
+    quotation.custom_odometer = job_order.odometer_value_last
+
+    for item in job_order.job_order_items:
+        quotation.append("items", {
+            "item_code": item.item_code,
+            "item_name": item.item_name,
+            "qty": item.quantity,
+            "rate": item.rate,
+            "amount": item.amount
+        })
+
+    for service in job_order.service_item:
+        quotation.append("items", {
+            "item_code": service.item_code,
+            "item_name": service.item_name,
+            "qty": service.quantity,
+            "rate": service.rate,
+            "amount": service.amount
+        })
+
+    quotation.save(ignore_permissions=True)
+
+    job_order.db_set("quotation", quotation.name)
+
+    return quotation
+
+
+@frappe.whitelist()
+def make_material_request(quotation):
+    quotation_doc = frappe.get_doc("Quotation", quotation)
+
+    job_order_name = quotation_doc.custom_job_order
+    if not job_order_name:
+        frappe.throw("Job Order not linked in Quotation")
+
+    job_order = frappe.get_doc("Job Order", job_order_name)
+
+    mr = frappe.new_doc("Material Request")
+    mr.material_request_type = "Material Transfer"
+    mr.company = quotation_doc.company
+    mr.custom_job_order = quotation_doc.custom_job_order
+
+    mr.set_warehouse = job_order.warehouse
+
+    for item in job_order.job_order_items:
+        mr.append("items", {
+            "item_code": item.item_code,
+            "qty": item.quantity,
+            "uom": item.uom,
+            "conversion_factor": 1,
+            "schedule_date": frappe.utils.nowdate(),
+            "warehouse": job_order.warehouse   
+        })
+
+    mr.save(ignore_permissions=True)
+
+    job_order.db_set("quotation", quotation_doc.name)
+
+    return mr
+
+
+@frappe.whitelist()
+def make_material_request_from_jo(job_order):
+    job_order = frappe.get_doc("Job Order", job_order)
+
+    mr = frappe.new_doc("Material Request")
+    mr.material_request_type = "Material Transfer"
+    mr.company = job_order.company
+
+    mr.custom_job_order = job_order.name
+
+    mr.set_warehouse = job_order.warehouse
+
+    for item in job_order.job_order_items:
+        if item.quantity > 0:
+            mr.append("items", {
+                "item_code": item.item_code,
+                "qty": item.quantity,
+                "uom": item.uom,
+                "conversion_factor": 1,
+                "schedule_date": frappe.utils.nowdate(),
+                "warehouse": job_order.warehouse
+            })
+
+    mr.save(ignore_permissions=True)
+
+    job_order.db_set("material_request", mr.name)
+
+    return mr
