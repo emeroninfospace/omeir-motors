@@ -12,7 +12,8 @@
   "quantity",
   "rate",
   "amount",
-  "service_type"
+  "service_type",
+  "description"
  ],
  "fields": [
   {
@@ -39,36 +40,43 @@
   {
    "fieldname": "quantity",
    "fieldtype": "Float",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Quantity"
   },
   {
    "columns": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Rate"
   },
   {
    "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Amount"
   },
   {
    "fetch_from": "item_code.custom_service_type",
    "fieldname": "service_type",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Service Type",
    "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-28 08:53:05.161863",
+ "modified": "2026-03-28 12:49:23.550722",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Service Item",

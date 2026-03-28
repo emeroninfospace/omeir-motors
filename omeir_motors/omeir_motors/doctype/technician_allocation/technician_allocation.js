@@ -28,6 +28,13 @@ frappe.ui.form.on("Technician Allocation", {
             frm.page.set_indicator('Pending', 'red');
         }
 	},
+    start_date: function(frm) {
+        calculate_duration(frm, 'start_date');
+    },
+
+    end_date: function(frm) {
+        calculate_duration(frm, 'end_date');
+    }
 });
 
 
@@ -175,4 +182,26 @@ function calculate_service_totals(frm) {
     });
     frm.set_value('total_quantity_service', total_qty);
     frm.set_value('total_amount_service', total_amt);
+}
+
+function calculate_duration(frm, fieldname) {
+
+    if (frm.doc.start_date && frm.doc.end_date) {
+
+        let start = frappe.datetime.str_to_obj(frm.doc.start_date);
+        let end = frappe.datetime.str_to_obj(frm.doc.end_date);
+
+        let diff = (end - start) / 1000; // seconds
+
+        if (diff < 0) {
+            frappe.msgprint("End Date cannot be before Start Date");
+
+            frm.set_value(fieldname, null);
+            frm.set_value('total_duration', 0);
+
+            return;
+        }
+
+        frm.set_value('total_duration', diff);
+    }
 }
