@@ -18,7 +18,37 @@ class TechnicianAllocation(Document):
 	def on_submit(self):
 		self.db_set("status", "Completed")
 		if self.job_order:
-			frappe.db.set_value("Job Order", self.job_order, "status", "Completed")
+			frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
+		if not self.job_order:
+			return
+
+		job_order = frappe.get_doc("Job Order", self.job_order)
+
+		existing_items_map = {}
+		for row in job_order.job_order_items:
+			existing_items_map[row.item_code] = row
+
+		for part in self.parts_items:
+
+			if part.item_code in existing_items_map:
+				jo_row = existing_items_map[part.item_code]
+				jo_row.quantity = part.quantity
+				jo_row.rate = part.rate
+				jo_row.amount = part.amount
+
+			else:
+				job_order.append("job_order_items", {
+					"item_code": part.item_code,
+					"item_name": part.item_name,
+					"uom": part.uom,
+					"quantity": part.quantity,
+					"rate": part.rate,
+					"amount": part.amount
+				})
+		job_order.total_quantity = self.total_quantity_service
+		job_order.total_amount = self.total_amount_service
+		job_order.save(ignore_permissions=True)
+		
 	
 	def on_cancel(self):
 		self.db_set("status", "Cancelled")

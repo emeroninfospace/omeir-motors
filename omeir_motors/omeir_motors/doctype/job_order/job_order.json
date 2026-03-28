@@ -13,12 +13,14 @@
   "expected_completion_date",
   "company",
   "quotation",
+  "material_request",
   "status",
   "column_break_atxk",
   "customer",
   "customer_address",
   "type",
   "address",
+  "warehouse",
   "driver_details_section",
   "driver",
   "license_number",
@@ -38,6 +40,14 @@
   "out_time",
   "vehicle_in",
   "vehicle_out",
+  "section_break_ibcb",
+  "complaint_details",
+  "service_item_section",
+  "service_item",
+  "section_break_bksz",
+  "total_quantity_service",
+  "column_break_huvo",
+  "total_amount_service",
   "job_order_item_section",
   "job_order_items",
   "section_break_nnhr",
@@ -122,7 +132,7 @@
    "options": "Vehicle"
   },
   {
-   "fetch_from": "vehicle.model",
+   "fetch_from": "vehicle.custom_custom_model",
    "fieldname": "model",
    "fieldtype": "Data",
    "label": "Model",
@@ -189,12 +199,14 @@
    "label": "Expected Completion Date"
   },
   {
+   "depends_on": "eval:doc.job_order_items",
    "fieldname": "total_quantity",
    "fieldtype": "Float",
    "label": "Total Quantity",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.job_order_items",
    "fieldname": "total_amount",
    "fieldtype": "Currency",
    "label": "Total Amount",
@@ -278,13 +290,68 @@
    "fieldname": "vehicle_out",
    "fieldtype": "Datetime",
    "label": "Vehicle Out"
+  },
+  {
+   "fieldname": "section_break_ibcb",
+   "fieldtype": "Section Break",
+   "label": "Complaints"
+  },
+  {
+   "fieldname": "complaint_details",
+   "fieldtype": "Long Text",
+   "label": "Complaint Details"
+  },
+  {
+   "fieldname": "service_item_section",
+   "fieldtype": "Section Break",
+   "label": "Service Item"
+  },
+  {
+   "fieldname": "service_item",
+   "fieldtype": "Table",
+   "label": "Service Item",
+   "options": "Service Item"
+  },
+  {
+   "fieldname": "total_amount_service",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_bksz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_quantity_service",
+   "fieldtype": "Float",
+   "label": "Total Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_huvo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "material_request",
+   "fieldtype": "Link",
+   "label": "Material Request",
+   "options": "Material Request",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-27 11:21:51.491104",
+ "modified": "2026-03-28 08:46:23.483727",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
