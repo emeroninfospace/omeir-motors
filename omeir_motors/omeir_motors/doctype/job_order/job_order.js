@@ -237,8 +237,6 @@ frappe.ui.form.on('Job Order Item', {
     }
 });
 
-
-
 frappe.ui.form.on('Service Item', {
     item_code: function(frm) {
         toggle_totals(frm);
@@ -279,9 +277,36 @@ frappe.ui.form.on('Service Item', {
         let row = locals[cdt][cdn];
         let amount = (row.quantity || 0) * (row.rate || 0);
         frappe.model.set_value(cdt, cdn, 'amount', amount);
-    }
+    },
+    start_time: function(frm, cdt, cdn) {
+        calculate_row_duration(frm, cdt, cdn);
+    },
+    end_time: function(frm, cdt, cdn) {
+        calculate_row_duration(frm, cdt, cdn);
+    },
 
 });
+function calculate_row_duration(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+
+    if (row.start_time && row.end_time) {
+
+        let start = frappe.datetime.str_to_obj(row.start_time);
+        let end = frappe.datetime.str_to_obj(row.end_time);
+
+        let diff = (end - start) / 1000;
+
+        if (diff < 0) {
+            frappe.model.set_value(cdt, cdn, 'start_time', null);
+            frappe.model.set_value(cdt, cdn, 'end_time', null);
+            frappe.msgprint("End Time cannot be before Start Time");
+            frappe.model.set_value(cdt, cdn, 'total_duration', 0);
+            return;
+        }
+
+        frappe.model.set_value(cdt, cdn, 'total_duration', diff);
+    }
+}
 
 function calculate_service_amount(cdt, cdn) {
     let row = locals[cdt][cdn];
@@ -312,8 +337,6 @@ function toggle_totals(frm) {
     frm.set_df_property('total_amount_service', 'hidden', !has_service_items);
     frm.set_df_property('total_quantity_service', 'hidden', !has_service_items);
 }
-
-
 
 
 function validate_vehicle_time(frm, fieldname) {

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "JO-.#####",
+ "autoname": "JC-.#####",
  "creation": "2026-03-17 12:19:01.998378",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,7 +9,6 @@
   "section_break_y6dk",
   "amended_from",
   "job_type",
-  "priority",
   "expected_completion_date",
   "company",
   "quotation",
@@ -182,13 +181,6 @@
    "fieldtype": "Text",
    "label": "Address",
    "read_only": 1
-  },
-  {
-   "default": "Low",
-   "fieldname": "priority",
-   "fieldtype": "Select",
-   "label": "Priority",
-   "options": "\nLow\nMedium\nHigh"
   },
   {
    "fieldname": "expected_completion_date",
@@ -378,7 +370,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-30 18:42:04.057671",
+ "modified": "2026-03-30 21:47:19.610762",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
@@ -394,6 +386,21 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
    "share": 1,
    "submit": 1,
    "write": 1
