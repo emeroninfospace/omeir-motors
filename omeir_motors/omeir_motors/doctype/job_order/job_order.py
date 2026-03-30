@@ -105,6 +105,16 @@ def make_sales_invoice(source_name, target_doc=None):
             target.custom_vehicle_in = source.vehicle_in
         if source.vehicle_out:
             target.custom_vehicle_out = source.vehicle_out
+        if source.make:
+            target.custom_make = source.make
+        if source.model:
+            target.custom_model = source.model
+        if source.fuel_type:
+            target.custom_fuel_type = source.fuel_type
+        if source.year:
+            target.custom_year = source.year
+        if source.chasis_number:
+            target.custom_chasis_number = source.chasis_number
             
         if target.get("items"):
             total_qty = sum([flt(item.qty) for item in target.items])
@@ -208,6 +218,7 @@ def make_quotation(source_name):
     quotation.custom_make = job_order.make
     quotation.custom_fuel_type = job_order.fuel_type
     quotation.custom_odometer = job_order.odometer_value_last
+    quotation.custom_year = job_order.year
 
     for item in job_order.job_order_items:
         quotation.append("items", {

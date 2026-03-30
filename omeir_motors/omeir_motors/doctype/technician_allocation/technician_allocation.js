@@ -5,7 +5,6 @@ frappe.ui.form.on("Technician Allocation", {
 
 
 	refresh(frm) {
-        calculate_totals(frm);
         filter_employees(frm);
         frm.get_field('table_yuoo').grid.cannot_add_rows = true;
         frm.refresh_field('table_yuoo');
@@ -19,7 +18,7 @@ frappe.ui.form.on("Technician Allocation", {
         } else {
             frm.page.set_indicator('Pending', 'red');
         }
-        if (!frm.doc.job_order || frm.doc.docstatus !== 0 || frm.is_dirty()) return;
+        if (frm.doc.job_order && frm.doc.docstatus == 0 && !frm.is_new()) {
 
         frm.add_custom_button('Request Items', () => {
 
@@ -70,14 +69,8 @@ frappe.ui.form.on("Technician Allocation", {
             );
 
         });
-	},
-    start_date: function(frm) {
-        calculate_duration(frm, 'start_date');
-    },
-
-    end_date: function(frm) {
-        calculate_duration(frm, 'end_date');
     }
+	}
 });
 
 
@@ -87,15 +80,39 @@ frappe.ui.form.on('Technician Service Item', {
     },
     rate: function(frm, cdt, cdn) {
         calculate_row(frm, cdt, cdn);
+    },
+    start_time: function(frm, cdt, cdn) {
+        calculate_row_duration(frm, cdt, cdn);
+    },
+
+    end_time: function(frm, cdt, cdn) {
+        calculate_row_duration(frm, cdt, cdn);
     }
 });
 
-function calculate_row(frm, cdt, cdn) {
+function calculate_row_duration(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
-    row.amount = (row.quantity || 0) * (row.rate || 0);
-    frm.refresh_field('table_yuoo');
-    calculate_totals(frm);
+
+    if (row.start_time && row.end_time) {
+
+        let start = frappe.datetime.str_to_obj(row.start_time);
+        let end = frappe.datetime.str_to_obj(row.end_time);
+
+        let diff = (end - start) / 1000;
+
+        if (diff < 0) {
+            frappe.model.set_value(cdt, cdn, 'start_time', null);
+            frappe.model.set_value(cdt, cdn, 'end_time', null);
+            frappe.msgprint("End Time cannot be before Start Time");
+            frappe.model.set_value(cdt, cdn, 'total_duration', 0);
+            return;
+        }
+
+        frappe.model.set_value(cdt, cdn, 'total_duration', diff);
+    }
 }
+
+
 
 
 function calculate_totals(frm) {
@@ -227,24 +244,3 @@ function calculate_service_totals(frm) {
     frm.set_value('total_amount_service', total_amt);
 }
 
-function calculate_duration(frm, fieldname) {
-
-    if (frm.doc.start_date && frm.doc.end_date) {
-
-        let start = frappe.datetime.str_to_obj(frm.doc.start_date);
-        let end = frappe.datetime.str_to_obj(frm.doc.end_date);
-
-        let diff = (end - start) / 1000; // seconds
-
-        if (diff < 0) {
-            frappe.msgprint("End Date cannot be before Start Date");
-
-            frm.set_value(fieldname, null);
-            frm.set_value('total_duration', 0);
-
-            return;
-        }
-
-        frm.set_value('total_duration', diff);
-    }
-}
