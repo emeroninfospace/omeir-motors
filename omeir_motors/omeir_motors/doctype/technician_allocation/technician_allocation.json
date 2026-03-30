@@ -23,12 +23,8 @@
   "total_quantity",
   "column_break_ocnu",
   "total_amount",
-  "parts_items_section",
-  "parts_items",
-  "section_break_niwb",
-  "total_quantity_service",
-  "column_break_biuc",
-  "total_amount_service"
+  "request_items_section",
+  "request_items"
  ],
  "fields": [
   {
@@ -141,43 +137,21 @@
    "read_only": 1
   },
   {
-   "fieldname": "parts_items_section",
+   "fieldname": "request_items_section",
    "fieldtype": "Section Break",
-   "label": "Parts Items"
+   "label": "Request Items"
   },
   {
-   "fieldname": "parts_items",
-   "fieldtype": "Table",
-   "label": "Parts Items",
-   "options": "Parts Items"
-  },
-  {
-   "fieldname": "section_break_niwb",
-   "fieldtype": "Section Break",
-   "hidden": 1
-  },
-  {
-   "fieldname": "total_quantity_service",
-   "fieldtype": "Float",
-   "label": "Total Quantity",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_biuc",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_amount_service",
-   "fieldtype": "Currency",
-   "label": "Total Amount",
-   "read_only": 1
+   "fieldname": "request_items",
+   "fieldtype": "Long Text",
+   "label": "Request Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-28 12:32:16.277708",
+ "modified": "2026-03-30 13:20:06.865486",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Allocation",

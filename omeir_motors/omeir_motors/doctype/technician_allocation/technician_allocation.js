@@ -2,15 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Technician Allocation", {
-    setup(frm) {
-        frm.set_query('item_code', 'parts_items', function(doc, cdt, cdn) {
-            return {
-                filters: {
-                    is_stock_item: 1
-                }
-            };
-        });
-    },
+
 
 	refresh(frm) {
         calculate_totals(frm);
@@ -27,6 +19,57 @@ frappe.ui.form.on("Technician Allocation", {
         } else {
             frm.page.set_indicator('Pending', 'red');
         }
+        if (!frm.doc.job_order || frm.doc.docstatus !== 0 || frm.is_dirty()) return;
+
+        frm.add_custom_button('Request Items', () => {
+
+            let formatted_text = (frm.doc.request_items || "No items")
+                .split("\n")
+                .map(line => line.trim())   // removes unwanted spaces
+                .join("\n");
+
+            frappe.confirm(
+                `
+                <div>
+                    <p><b>Requested Items:</b></p>
+                    <div style="
+                        white-space: pre-line;
+                        font-family: monospace;
+                        border: 1px solid #ccc;
+                        padding: 10px;
+                        max-height: 200px;
+                        overflow: auto;
+                        background: #fafafa;
+                    ">
+            ${frappe.utils.escape_html(formatted_text)}
+                    </div>
+                    <br>
+                    <p>Is there all items you need to request?</p>
+                </div>
+                `,
+                () => {
+
+                    frappe.call({
+                        method: "frappe.client.set_value",
+                        args: {
+                            doctype: "Job Order",
+                            name: frm.doc.job_order,
+                            fieldname: {
+                                request_parts: frm.doc.request_items || ""
+                            }
+                        },
+                        callback: function() {
+                            frappe.msgprint("Request Items updated in Job Order");
+                        }
+                    });
+
+                },
+                () => {
+                    frappe.msgprint("Request cancelled");
+                }
+            );
+
+        });
 	},
     start_date: function(frm) {
         calculate_duration(frm, 'start_date');
