@@ -13,7 +13,11 @@
   "rate",
   "amount",
   "service_type",
-  "description"
+  "description",
+  "column_break_jnrt",
+  "start_time",
+  "end_time",
+  "total_duration"
  ],
  "fields": [
   {
@@ -34,6 +38,7 @@
    "fetch_from": "item_code.stock_uom",
    "fieldname": "uom",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "UOM",
    "options": "UOM"
   },
@@ -66,17 +71,42 @@
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Description"
+  },
+  {
+   "fieldname": "column_break_jnrt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Start Time"
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "End Time"
+  },
+  {
+   "columns": 1,
+   "fieldname": "total_duration",
+   "fieldtype": "Duration",
+   "in_list_view": 1,
+   "label": "Total Duration",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-28 12:49:23.550722",
+ "modified": "2026-03-30 17:29:25.308720",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Technician Service Item",

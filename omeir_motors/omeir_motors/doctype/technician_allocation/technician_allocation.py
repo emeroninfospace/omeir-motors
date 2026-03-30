@@ -7,25 +7,50 @@ from frappe.utils import get_datetime
 
 
 class TechnicianAllocation(Document):
-	def validate(self):
-		if self.start_date and self.end_date:
-			diff = (get_datetime(self.end_date) - get_datetime(self.start_date)).total_seconds()
-			self.total_duration = diff
-		
+	def validate(self):	
 		if self.job_order:
 			frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
+
+			job_order = frappe.get_doc("Job Order", self.job_order)
+
+			jo_items_map = {}
+			for row in job_order.service_item:
+				if row.item_code:
+					jo_items_map[row.item_code] = row
+
+			for row in self.table_yuoo:
+				if not row.item_code:
+					continue
+
+				if row.item_code in jo_items_map:
+					jo_row = jo_items_map[row.item_code]
+
+					jo_row.start_time = row.start_time
+					jo_row.end_time = row.end_time
+					jo_row.total_duration = row.total_duration
+
+			job_order.save(ignore_permissions=True)
+					
 	
 	def on_submit(self):
 		self.db_set("status", "Completed")
-			
+
 		if not self.job_order:
 			return
-		
+
+		total_duration = 0
+
+		for row in self.table_yuoo:
+			total_duration += row.total_duration or 0
+
 		frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
+
 		job_order = frappe.get_doc("Job Order", self.job_order)
+
 		job_order.technician_allocation = self.name
 		job_order.request_parts = self.request_items
-		job_order.total_duration = self.total_duration
+		job_order.total_duration = total_duration
+
 		job_order.save(ignore_permissions=True)
 		
 	
