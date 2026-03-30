@@ -7,13 +7,13 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
-  "item_name",
   "description",
   "quantity",
   "rate",
   "amount",
   "column_break_gphg",
   "service_type",
+  "employee",
   "start_time",
   "end_time",
   "total_duration"
@@ -25,13 +25,6 @@
    "in_list_view": 1,
    "label": "Item Code",
    "options": "Item"
-  },
-  {
-   "fetch_from": "item_code.item_name",
-   "fieldname": "item_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Item Name"
   },
   {
    "columns": 1,
@@ -74,27 +67,32 @@
   {
    "fieldname": "start_time",
    "fieldtype": "Datetime",
-   "label": "Start Time",
-   "read_only": 1
+   "label": "Start Time"
   },
   {
    "fieldname": "end_time",
    "fieldtype": "Datetime",
-   "label": "End Time",
-   "read_only": 1
+   "label": "End Time"
   },
   {
    "fieldname": "total_duration",
    "fieldtype": "Duration",
    "label": "Total Duration",
    "read_only": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-30 18:37:25.721884",
+ "modified": "2026-03-30 21:46:35.065281",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Service Item",
