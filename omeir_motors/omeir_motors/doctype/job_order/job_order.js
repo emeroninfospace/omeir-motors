@@ -55,7 +55,7 @@ frappe.ui.form.on('Job Order', {
 
                                     doc.job_order = frm.doc.name;
                                     doc.start_date = frappe.datetime.now_datetime();
-
+                                    doc.request_items = frm.doc.request_parts;
                                     (r.message || []).forEach(item => {
                                         let row = frappe.model.add_child(doc, 'table_yuoo');
 
@@ -107,7 +107,7 @@ frappe.ui.form.on('Job Order', {
 
         });
     }
-    if (frm.doc.docstatus === 1 && !frm.doc.quotation) {
+    if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {
 
     frm.add_custom_button('Quotation', () => {
         frappe.call({
@@ -123,8 +123,9 @@ frappe.ui.form.on('Job Order', {
             }
         });
     }, 'Create');
+}
 
-    if (frm.doc.docstatus === 1 && !frm.doc.material_request) {
+    if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.material_request) {
 
     frm.add_custom_button('Material Request', () => {
         frappe.call({
@@ -141,7 +142,7 @@ frappe.ui.form.on('Job Order', {
         });
     }, 'Create');
 }
-}
+
        if (frm.doc.docstatus === 2) {
             frm.page.set_indicator('Cancelled', 'grey');
         } else if (frm.doc.status === "Completed") {
@@ -235,6 +236,7 @@ frappe.ui.form.on('Job Order Item', {
         calculate_service_totals(frm);
     }
 });
+
 
 
 frappe.ui.form.on('Service Item', {

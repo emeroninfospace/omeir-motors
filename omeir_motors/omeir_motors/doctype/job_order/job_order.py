@@ -93,7 +93,8 @@ def make_sales_invoice(source_name, target_doc=None):
         target.customer = source.customer
         target.posting_date = nowdate()
         target.set_posting_time = 1
-        
+        target.update_stock = 1
+        target.set_warehouse = source.warehouse
         if source.company:
             target.company = source.company
         if source.vehicle:
@@ -129,7 +130,13 @@ def make_sales_invoice(source_name, target_doc=None):
                 income_account = frappe.db.get_value("Company", 
                     source_parent.company, "default_income_account")
             target.income_account = income_account
-      
+        
+        if source.item_code:
+            item_doc = frappe.get_doc("Item", source.item_code)
+
+            target.uom = item_doc.stock_uom
+            target.stock_uom = item_doc.stock_uom
+            target.conversion_factor = 1
 
     doc = get_mapped_doc(
         "Job Order",
@@ -159,7 +166,19 @@ def make_sales_invoice(source_name, target_doc=None):
                     "amount": "amount"
                 },
                 "postprocess": update_item
-            }
+            },
+            "Service Item": {   
+            "doctype": "Sales Invoice Item",
+            "field_map": {
+                "item_code": "item_code",
+                "item_name": "item_name",
+                "description": "description",
+                "quantity": "qty",   
+                "rate": "rate",
+                "amount": "amount"
+            },
+            "postprocess": update_item
+        }
         },
         target_doc,
         set_missing_values
@@ -230,16 +249,31 @@ def make_material_request(quotation):
     mr.company = quotation_doc.company
     mr.custom_job_order = quotation_doc.custom_job_order
 
-    mr.set_warehouse = job_order.warehouse
+    mr.set_from_warehouse = job_order.warehouse
+
+    default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+    if not default_warehouse:
+        frappe.throw("Default Warehouse not set in Stock Settings")
+
+    mr.set_warehouse = default_warehouse
 
     for item in job_order.job_order_items:
+        if not item.item_code:
+            continue
+
+        stock_uom = frappe.db.get_value("Item", item.item_code, "stock_uom")
+
         mr.append("items", {
             "item_code": item.item_code,
             "qty": item.quantity,
-            "uom": item.uom,
+            "stock_qty": item.quantity,
+            "uom": stock_uom,
+            "stock_uom": stock_uom,
             "conversion_factor": 1,
             "schedule_date": frappe.utils.nowdate(),
-            "warehouse": job_order.warehouse   
+            "from_warehouse": job_order.warehouse,
+            "warehouse": default_warehouse,
+            "allow_zero_valuation_rate": 1
         })
 
     mr.save(ignore_permissions=True)
@@ -256,21 +290,43 @@ def make_material_request_from_jo(job_order):
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
     mr.company = job_order.company
-
     mr.custom_job_order = job_order.name
 
-    mr.set_warehouse = job_order.warehouse
+    mr.transaction_date = frappe.utils.nowdate()
+    mr.schedule_date = frappe.utils.nowdate()
+
+    mr.set_from_warehouse = job_order.warehouse
+
+    default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+    if not default_warehouse:
+        frappe.throw("Default Warehouse not set in Stock Settings")
+
+    mr.set_warehouse = default_warehouse
 
     for item in job_order.job_order_items:
-        if item.quantity > 0:
-            mr.append("items", {
-                "item_code": item.item_code,
-                "qty": item.quantity,
-                "uom": item.uom,
-                "conversion_factor": 1,
-                "schedule_date": frappe.utils.nowdate(),
-                "warehouse": job_order.warehouse
-            })
+        if not item.item_code or item.quantity <= 0:
+            continue
+
+        item_doc = frappe.get_doc("Item", item.item_code)
+
+        mr.append("items", {
+            "item_code": item.item_code,
+            "item_name": item_doc.item_name,
+            "description": item_doc.description or item_doc.item_name,
+            "item_group": item_doc.item_group,
+
+            "qty": item.quantity,
+            "stock_qty": item.quantity,  # 🔥 critical
+            "uom": item_doc.stock_uom,
+            "stock_uom": item_doc.stock_uom,
+            "conversion_factor": 1,
+
+            "schedule_date": frappe.utils.nowdate(),
+            "from_warehouse": job_order.warehouse,
+            "warehouse": default_warehouse,
+
+            "allow_zero_valuation_rate": 1  # avoids valuation error
+        })
 
     mr.save(ignore_permissions=True)
 
