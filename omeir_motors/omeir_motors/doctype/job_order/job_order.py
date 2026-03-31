@@ -266,13 +266,13 @@ def make_material_request(quotation):
     mr.company = quotation_doc.company
     mr.custom_job_order = quotation_doc.custom_job_order
 
-    mr.set_from_warehouse = job_order.warehouse
+    mr.set_warehouse = job_order.warehouse
 
     default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
     if not default_warehouse:
         frappe.throw("Default Warehouse not set in Stock Settings")
 
-    mr.set_warehouse = default_warehouse
+    mr.set_from_warehousegit  = default_warehouse
 
     for item in job_order.job_order_items:
         if not item.item_code:
