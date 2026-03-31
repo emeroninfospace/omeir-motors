@@ -325,6 +325,7 @@
   {
    "fieldname": "technician_allocation",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Technician Allocation",
    "options": "Technician Allocation",
    "read_only": 1
@@ -385,7 +386,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-31 11:22:34.336780",
+ "modified": "2026-03-31 15:09:24.486130",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",

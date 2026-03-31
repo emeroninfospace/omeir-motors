@@ -5,7 +5,7 @@ frappe.ui.form.on("Technician Allocation", {
 
 
 	refresh(frm) {
-        filter_employees(frm);
+        // filter_employees(frm);
         frm.get_field('table_yuoo').grid.cannot_add_rows = true;
         frm.refresh_field('table_yuoo');
         if (frm.doc.status === "Completed") {
@@ -48,17 +48,35 @@ frappe.ui.form.on("Technician Allocation", {
                 `,
                 () => {
 
-                    frappe.call({
-                        method: "frappe.client.set_value",
+                   frappe.call({
+                        method: "frappe.client.get_value",
                         args: {
                             doctype: "Job Order",
-                            name: frm.doc.job_order,
-                            fieldname: {
-                                request_parts: frm.doc.request_items || ""
-                            }
+                            filters: { name: frm.doc.job_order },
+                            fieldname: ["request_parts"]
                         },
-                        callback: function() {
-                            frappe.msgprint("Request Items updated in Job Order");
+                        callback: function(r) {
+                            let existing = r.message.request_parts || "";
+                            let new_value = frm.doc.request_items || "";
+
+                            // ✅ Merge with line break
+                            let combined = existing 
+                                ? existing + "\n\n" + new_value 
+                                : new_value;
+
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Job Order",
+                                    name: frm.doc.job_order,
+                                    fieldname: {
+                                        request_parts: combined
+                                    }
+                                },
+                                callback: function() {
+                                    frappe.msgprint("Request Items updated in Job Order");
+                                }
+                            });
                         }
                     });
 
