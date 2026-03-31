@@ -8,17 +8,17 @@ from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
 
-    def before_submit(self):
-        allocation = frappe.db.exists(
-            "Technician Allocation",
-            {
-                "job_order": self.name,
-                "docstatus": ["in", [0, 1]]
-            }
-        )
+    # def before_submit(self):
+    #     allocation = frappe.db.exists(
+    #         "Technician Allocation",
+    #         {
+    #             "job_order": self.name,
+    #             "docstatus": ["in", [0, 1]]
+    #         }
+    #     )
 
-        if not allocation:
-            frappe.throw("Please create Technician Allocation before submitting Job Order.")
+    #     if not allocation:
+    #         frappe.throw("Please create Technician Allocation before submitting Job Order.")
 
     def before_save(self):
         self.validate_and_update_vehicle_odometer()
@@ -142,11 +142,17 @@ def make_sales_invoice(source_name, target_doc=None):
             target.income_account = income_account
         
         if source.item_code:
-            item_doc = frappe.get_doc("Item", source.item_code)
-
-            target.uom = item_doc.stock_uom
-            target.stock_uom = item_doc.stock_uom
-            target.conversion_factor = 1
+            item_data = frappe.db.get_value(
+            "Item",
+            source.item_code,
+            ["item_name", "stock_uom", "description"],
+            as_dict=1
+        )
+            if item_data:
+                target.item_name = item_data.item_name
+                target.uom = item_data.stock_uom
+                target.stock_uom = item_data.stock_uom
+                target.conversion_factor = 1
 
     doc = get_mapped_doc(
         "Job Order",
@@ -296,7 +302,18 @@ def make_material_request(quotation):
 
 @frappe.whitelist()
 def make_material_request_from_jo(job_order):
+
     job_order = frappe.get_doc("Job Order", job_order)
+
+    existing_items = frappe.db.sql("""
+        SELECT mri.item_code
+        FROM `tabMaterial Request Item` mri
+        JOIN `tabMaterial Request` mr ON mr.name = mri.parent
+        WHERE mr.custom_job_order = %s
+        AND mr.docstatus != 2
+    """, job_order.name, as_dict=1)
+
+    existing_item_codes = {d.item_code for d in existing_items}
 
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
@@ -314,8 +331,13 @@ def make_material_request_from_jo(job_order):
 
     mr.set_warehouse = default_warehouse
 
+    added = False
+
     for item in job_order.job_order_items:
         if not item.item_code or item.quantity <= 0:
+            continue
+
+        if item.item_code in existing_item_codes:
             continue
 
         item_doc = frappe.get_doc("Item", item.item_code)
@@ -327,7 +349,7 @@ def make_material_request_from_jo(job_order):
             "item_group": item_doc.item_group,
 
             "qty": item.quantity,
-            "stock_qty": item.quantity,  # 🔥 critical
+            "stock_qty": item.quantity,
             "uom": item_doc.stock_uom,
             "stock_uom": item_doc.stock_uom,
             "conversion_factor": 1,
@@ -336,11 +358,47 @@ def make_material_request_from_jo(job_order):
             "from_warehouse": job_order.warehouse,
             "warehouse": default_warehouse,
 
-            "allow_zero_valuation_rate": 1  # avoids valuation error
+            "allow_zero_valuation_rate": 1
         })
+
+        added = True
+
+    if not added:
+        frappe.throw("All items are already requested in previous Material Requests")
 
     mr.save(ignore_permissions=True)
 
     job_order.db_set("material_request", mr.name)
 
     return mr
+
+
+@frappe.whitelist()
+def get_filtered_employees(doctype, txt, searchfield, start, page_len, filters):
+    item_code = filters.get("item_code")
+
+    if not item_code:
+        return []
+
+    item = frappe.get_doc("Item", item_code)
+
+    employees = [
+        d.employee for d in item.custom_technician_allocation_
+        if d.employee
+    ]
+
+    if not employees:
+        return []
+
+    return frappe.db.sql("""
+        SELECT name, employee_name
+        FROM `tabEmployee`
+        WHERE name IN %(employees)s
+        AND name LIKE %(txt)s
+        LIMIT %(start)s, %(page_len)s
+    """, {
+        "employees": tuple(employees),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len
+    })

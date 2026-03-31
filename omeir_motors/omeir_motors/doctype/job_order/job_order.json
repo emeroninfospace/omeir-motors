@@ -9,18 +9,18 @@
   "section_break_y6dk",
   "naming_series",
   "job_type",
-  "expected_completion_date",
   "company",
   "quotation",
   "material_request",
   "status",
+  "warehouse",
   "total_duration",
   "column_break_atxk",
+  "expected_completion_date",
   "customer",
   "customer_address",
   "type",
   "address",
-  "warehouse",
   "technician_allocation",
   "amended_from",
   "driver_details_section",
@@ -34,12 +34,12 @@
   "model",
   "year",
   "fuel_type",
-  "fuel_level",
+  "vehicle_in",
   "column_break_ekei",
   "odometer_value_last",
   "make",
   "chasis_number",
-  "vehicle_in",
+  "fuel_level",
   "vehicle_out",
   "section_break_ibcb",
   "complaint_details",
@@ -78,7 +78,6 @@
    "default": "New",
    "fieldname": "job_type",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Job Type",
    "options": "\nNew\nRoutine Service\nWarranty\nInsurance Claim\nOther",
    "reqd": 1
@@ -131,6 +130,8 @@
   {
    "fieldname": "vehicle",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Vehicle",
    "options": "Vehicle",
    "reqd": 1
@@ -140,6 +141,7 @@
    "fetch_from": "vehicle.custom_custom_model",
    "fieldname": "model",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Model",
    "read_only": 1
   },
@@ -152,6 +154,7 @@
    "fetch_from": "vehicle.make",
    "fieldname": "make",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Make",
    "read_only": 1
   },
@@ -184,9 +187,11 @@
    "read_only": 1
   },
   {
+   "default": "now",
    "fieldname": "expected_completion_date",
    "fieldtype": "Date",
-   "label": "Expected Completion Date"
+   "in_list_view": 1,
+   "label": "Posting Date"
   },
   {
    "fieldname": "company",
@@ -204,6 +209,7 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Customer",
    "options": "Customer",
    "reqd": 1
@@ -251,6 +257,7 @@
   {
    "fieldname": "complaint_details",
    "fieldtype": "Long Text",
+   "in_list_view": 1,
    "label": "Service Description"
   },
   {
@@ -294,6 +301,7 @@
   {
    "fieldname": "material_request",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Material Request",
    "options": "Material Request",
    "read_only": 1

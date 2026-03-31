@@ -17,6 +17,17 @@ frappe.ui.form.on('Job Order', {
                 }
             };
         });
+        frm.set_query('employee', 'service_item', function(doc, cdt, cdn) {
+
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "omeir_motors.omeir_motors.doctype.job_order.job_order.get_filtered_employees",
+                filters: {
+                    item_code: row.item_code || ""
+                }
+            };
+        });
     },
 
     refresh: function(frm) {
@@ -124,8 +135,7 @@ frappe.ui.form.on('Job Order', {
         });
     }, 'Create');
 }
-
-    if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.material_request) {
+if (frm.doc.docstatus !== 2 && !frm.is_new()) {
 
     frm.add_custom_button('Material Request', () => {
         frappe.call({
@@ -141,6 +151,7 @@ frappe.ui.form.on('Job Order', {
             }
         });
     }, 'Create');
+
 }
 
        if (frm.doc.docstatus === 2) {
@@ -245,6 +256,7 @@ frappe.ui.form.on('Service Item', {
         toggle_totals(frm);
     },
     item_code: function(frm, cdt, cdn) {
+        filter_employees(frm,cdt,cdn)
         let row = locals[cdt][cdn];
 
         if (row.item_code) {
@@ -352,4 +364,17 @@ function validate_vehicle_time(frm, fieldname) {
             frm.set_value(fieldname, null);
         }
     }
+}
+
+function filter_employees(frm,cdt,cdn) {
+  frm.set_query('employee', 'service_item', function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "omeir_motors.omeir_motors.doctype.job_order.job_order.get_filtered_employees",
+                filters: {
+                    item_code: row.item_code
+                }
+            };
+        });
 }
