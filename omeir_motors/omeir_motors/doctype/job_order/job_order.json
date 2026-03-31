@@ -1,13 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "JC-.#####",
+ "autoname": "naming_series:",
  "creation": "2026-03-17 12:19:01.998378",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_y6dk",
-  "amended_from",
+  "naming_series",
   "job_type",
   "company",
   "quotation",
@@ -22,6 +22,7 @@
   "type",
   "address",
   "technician_allocation",
+  "amended_from",
   "driver_details_section",
   "driver",
   "license_number",
@@ -373,6 +374,12 @@
    "fieldname": "chasis_number",
    "fieldtype": "Data",
    "label": "Chasis Number"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "JC.-.#####"
   }
  ],
  "grid_page_length": 50,
@@ -383,7 +390,7 @@
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
- "naming_rule": "Expression",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
