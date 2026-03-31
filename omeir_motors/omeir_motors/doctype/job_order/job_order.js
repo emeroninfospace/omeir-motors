@@ -51,33 +51,18 @@ frappe.ui.form.on('Job Order', {
         }).then((alloc) => {
 
             if (!alloc.length) {
-                frm.add_custom_button('Technician Allocation', () => {
+               frm.add_custom_button('Technician Allocation', () => {
 
                     frappe.call({
-                        method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.get_items_for_allocation',
+                        method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.create_multiple_allocations',
                         args: {
                             job_order: frm.doc.name
                         },
                         callback: function(r) {
+                            if (!r.exc && r.message) {
 
-                            if (r.message) {
-
-                                frappe.new_doc('Technician Allocation', {}, (doc) => {
-
-                                    doc.job_order = frm.doc.name;
-                                    doc.start_date = frappe.datetime.now_datetime();
-                                    doc.request_items = frm.doc.request_parts;
-                                    (r.message || []).forEach(item => {
-                                        let row = frappe.model.add_child(doc, 'table_yuoo');
-
-                                        row.item_code = item.item_code;
-                                        row.item_name = item.item_name;
-                                        row.description = item.description
-                                        row.quantity = item.quantity;
-                                        row.rate = item.rate;
-                                        row.amount = item.amount;
-                                    });
-
+                                frappe.set_route('List', 'Technician Allocation', {
+                                    name: ['in', r.message]
                                 });
 
                             }

@@ -48,8 +48,7 @@ class TechnicianAllocation(Document):
 		job_order = frappe.get_doc("Job Order", self.job_order)
 
 		job_order.technician_allocation = self.name
-		job_order.request_parts = self.request_items
-		job_order.total_duration = total_duration
+		job_order.total_duration = (job_order.total_duration or 0) + total_duration
 
 		job_order.save(ignore_permissions=True)
 		

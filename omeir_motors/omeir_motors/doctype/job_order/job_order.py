@@ -402,3 +402,51 @@ def get_filtered_employees(doctype, txt, searchfield, start, page_len, filters):
         "start": start,
         "page_len": page_len
     })
+
+
+@frappe.whitelist()
+def create_multiple_allocations(job_order):
+    job_order_doc = frappe.get_doc("Job Order", job_order)
+
+    created_docs = []
+
+    for item in job_order_doc.service_item:
+        if not item.item_code or not item.employee:
+            continue
+
+        exists = frappe.db.sql("""
+            SELECT ta.name
+            FROM `tabTechnician Allocation` ta
+            INNER JOIN `tabTechnician Service Item` tsi
+                ON tsi.parent = ta.name
+            WHERE ta.job_order = %s
+            AND ta.employee = %s
+            AND tsi.item_code = %s
+            AND ta.docstatus != 2
+        """, (job_order_doc.name, item.employee, item.item_code))
+
+        if exists:
+            frappe.msgprint(
+                f"Allocation already exists for Item {item.item_code} and Employee {item.employee}"
+            )
+            continue
+
+        ta = frappe.new_doc("Technician Allocation")
+        ta.job_order = job_order_doc.name
+        ta.start_date = frappe.utils.now_datetime()
+        ta.request_items = job_order_doc.request_parts
+        ta.employee = item.employee
+
+        ta.append("table_yuoo", {
+            "item_code": item.item_code,
+            "item_name": item.item_name,
+            "description": item.description,
+            "quantity": item.quantity,
+            "rate": item.rate,
+            "amount": item.amount
+        })
+
+        ta.insert(ignore_permissions=True)
+        created_docs.append(ta.name)
+
+    return created_docs
