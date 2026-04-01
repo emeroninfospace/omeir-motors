@@ -272,7 +272,7 @@ def make_material_request(quotation):
     if not default_warehouse:
         frappe.throw("Default Warehouse not set in Stock Settings")
 
-    mr.set_from_warehousegit  = default_warehouse
+    mr.set_from_warehouse  = default_warehouse
 
     for item in job_order.job_order_items:
         if not item.item_code:
