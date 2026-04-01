@@ -120,7 +120,7 @@ frappe.ui.form.on('Job Order', {
         });
     }, 'Create');
 }
-if (frm.doc.docstatus === 0 && !frm.is_new()) {
+if (frm.doc.docstatus !== 2 && !frm.is_new()) {
 
     frm.add_custom_button('Material Request', () => {
         frappe.call({
