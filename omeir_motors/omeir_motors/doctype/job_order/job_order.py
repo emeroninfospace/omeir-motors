@@ -306,14 +306,17 @@ def make_material_request_from_jo(job_order):
     job_order = frappe.get_doc("Job Order", job_order)
 
     existing_items = frappe.db.sql("""
-        SELECT mri.item_code
+        SELECT 
+            mri.item_code,
+            SUM(mri.qty) as total_qty
         FROM `tabMaterial Request Item` mri
         JOIN `tabMaterial Request` mr ON mr.name = mri.parent
         WHERE mr.custom_job_order = %s
         AND mr.docstatus != 2
+        GROUP BY mri.item_code
     """, job_order.name, as_dict=1)
 
-    existing_item_codes = {d.item_code for d in existing_items}
+    existing_qty_map = {d.item_code: d.total_qty for d in existing_items}
 
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
@@ -323,13 +326,13 @@ def make_material_request_from_jo(job_order):
     mr.transaction_date = frappe.utils.nowdate()
     mr.schedule_date = frappe.utils.nowdate()
 
-    mr.set_from_warehouse = job_order.warehouse
+    mr.set_warehouse = job_order.warehouse
 
     default_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
     if not default_warehouse:
         frappe.throw("Default Warehouse not set in Stock Settings")
 
-    mr.set_warehouse = default_warehouse
+    mr.set_from_warehouse = default_warehouse
 
     added = False
 
@@ -337,7 +340,10 @@ def make_material_request_from_jo(job_order):
         if not item.item_code or item.quantity <= 0:
             continue
 
-        if item.item_code in existing_item_codes:
+        already_requested = existing_qty_map.get(item.item_code, 0)
+        remaining_qty = item.quantity - already_requested
+
+        if remaining_qty <= 0:
             continue
 
         item_doc = frappe.get_doc("Item", item.item_code)
@@ -347,17 +353,14 @@ def make_material_request_from_jo(job_order):
             "item_name": item_doc.item_name,
             "description": item_doc.description or item_doc.item_name,
             "item_group": item_doc.item_group,
-
-            "qty": item.quantity,
-            "stock_qty": item.quantity,
+            "qty": remaining_qty,
+            "stock_qty": remaining_qty,
             "uom": item_doc.stock_uom,
             "stock_uom": item_doc.stock_uom,
             "conversion_factor": 1,
-
             "schedule_date": frappe.utils.nowdate(),
             "from_warehouse": job_order.warehouse,
             "warehouse": default_warehouse,
-
             "allow_zero_valuation_rate": 1
         })
 
@@ -368,7 +371,6 @@ def make_material_request_from_jo(job_order):
 
     mr.save(ignore_permissions=True)
 
-    job_order.db_set("material_request", mr.name)
 
     return mr
 
