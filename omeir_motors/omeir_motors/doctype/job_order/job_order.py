@@ -51,6 +51,53 @@ class JobOrder(Document):
                 job_odometer
             )
 
+    def before_cancel(self):
+
+        def cancel_stock_entries(material_requests):
+            if not material_requests:
+                return
+
+            stock_entries = frappe.db.sql("""
+                SELECT DISTINCT se.name
+                FROM `tabStock Entry` se
+                JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+                WHERE sed.material_request IN %s
+                AND se.docstatus = 1
+            """, (tuple(material_requests),), as_dict=True)
+
+            for se in stock_entries:
+                doc = frappe.get_doc("Stock Entry", se.name)
+                doc.flags.ignore_links = True
+                doc.cancel()
+
+
+        def cancel_docs(doctype, filters):
+            docs = frappe.get_all(doctype, filters=filters, pluck="name")
+
+            for d in docs:
+                doc = frappe.get_doc(doctype, d)
+
+                if doc.docstatus == 1:
+                    doc.flags.ignore_links = True
+                    doc.cancel()
+
+
+        material_requests = frappe.get_all(
+            "Material Request",
+            filters={"custom_job_order": self.name},
+            pluck="name"
+        )
+
+        cancel_stock_entries(material_requests)
+
+        cancel_docs("Sales Invoice", {"custom_job_order": self.name})
+
+        cancel_docs("Technician Allocation", {"job_order": self.name})
+        cancel_docs("Vehicle Log", {"custom_job_order": self.name})
+
+        cancel_docs("Material Request", {"custom_job_order": self.name})
+
+        cancel_docs("Quotation", {"custom_job_order": self.name})
 
     def create_vehicle_log(self):
         if not self.vehicle:

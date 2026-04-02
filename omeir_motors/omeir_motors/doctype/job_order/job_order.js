@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Job Order', {
     setup(frm) {
+        frm.ignore_doctypes_on_cancel_all = ["Technician Allocation", "Material Request", "Quotation", "Vehicle Log", "Sales Invoice"];
         frm.set_query('item_code', 'service_item', function(doc, cdt, cdn) {
             return {
                 filters: {
@@ -139,17 +140,22 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
 
 }
 
-       if (frm.doc.docstatus === 2) {
-            frm.page.set_indicator('Cancelled', 'grey');
-        } else if (frm.doc.status === "Completed") {
-            frm.page.set_indicator('Completed', 'green');
-        } else if (frm.doc.status === "In Progress") {
-            frm.page.set_indicator('In Progress', 'orange');
-        } else {
-            frm.page.set_indicator('Pending', 'red');
-        }
-                
-    },
+    if (frm.doc.docstatus === 2) {
+        frm.page.set_indicator('Cancelled', 'red');
+
+    } else if (frm.doc.docstatus === 0) {
+        frm.page.set_indicator('Draft', 'grey');
+
+    } else if (frm.doc.status === "Completed") {
+        frm.page.set_indicator('Completed', 'green');
+
+    } else if (frm.doc.status === "Pending") {
+        frm.page.set_indicator('Pending', 'orange');
+
+    } else {
+        frm.page.set_indicator('Pending', 'orange');
+    }
+},
 
     vehicle: function(frm) {
         if (frm.doc.vehicle) {

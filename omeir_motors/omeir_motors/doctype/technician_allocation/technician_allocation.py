@@ -9,7 +9,7 @@ from frappe.utils import get_datetime
 class TechnicianAllocation(Document):
 	def validate(self):	
 		if self.job_order:
-			frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
+			
 
 			job_order = frappe.get_doc("Job Order", self.job_order)
 
@@ -43,11 +43,11 @@ class TechnicianAllocation(Document):
 		for row in self.table_yuoo:
 			total_duration += row.total_duration or 0
 
-		frappe.db.set_value("Job Order", self.job_order, "status", "In Progress")
+		
 
 		job_order = frappe.get_doc("Job Order", self.job_order)
 
-		job_order.technician_allocation = self.name
+		
 		job_order.total_duration = (job_order.total_duration or 0) + total_duration
 
 		job_order.save(ignore_permissions=True)
