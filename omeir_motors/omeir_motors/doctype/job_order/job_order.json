@@ -21,7 +21,6 @@
   "customer_address",
   "type",
   "address",
-  "technician_allocation",
   "amended_from",
   "driver_details_section",
   "driver",
@@ -234,7 +233,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nPending\nIn Progress\nCompleted",
+   "options": "\nDraft\nPending\nCompleted",
    "read_only": 1
   },
   {
@@ -323,14 +322,6 @@
    "label": "Requested Parts"
   },
   {
-   "fieldname": "technician_allocation",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Technician Allocation",
-   "options": "Technician Allocation",
-   "read_only": 1
-  },
-  {
    "fieldname": "job_order_items_section",
    "fieldtype": "Section Break",
    "label": "Job Order Items"
@@ -386,7 +377,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-31 15:09:24.486130",
+ "modified": "2026-04-02 12:58:59.833774",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
