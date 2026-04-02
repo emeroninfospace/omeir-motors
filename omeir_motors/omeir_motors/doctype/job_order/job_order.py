@@ -8,18 +8,6 @@ from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
 
-    # def before_submit(self):
-    #     allocation = frappe.db.exists(
-    #         "Technician Allocation",
-    #         {
-    #             "job_order": self.name,
-    #             "docstatus": ["in", [0, 1]]
-    #         }
-    #     )
-
-    #     if not allocation:
-    #         frappe.throw("Please create Technician Allocation before submitting Job Order.")
-
     def before_save(self):
         self.validate_and_update_vehicle_odometer()
 
@@ -128,11 +116,23 @@ class JobOrder(Document):
 
         log.insert(ignore_permissions=True)
         log.submit()
-
     
-import frappe
-from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt, nowdate
+    def calculate_total(self):
+        total_quantity = 0
+        total_amount = 0
+
+        for row in self.job_order_items:
+            row.amount = (row.quantity or 0) * (row.rate or 0)
+
+            total_quantity += row.quantity or 0
+            total_amount += row.amount or 0
+
+        self.total_quantity = total_quantity
+        self.total_amount = total_amount
+
+    def validate(self):
+        self.calculate_total()
+
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    
