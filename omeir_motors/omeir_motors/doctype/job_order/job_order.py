@@ -132,7 +132,12 @@ class JobOrder(Document):
 
     def validate(self):
         self.calculate_total()
-
+        self.validate_rate()
+    
+    def validate_rate(self):
+        for row in self.service_item:
+            if not row.rate:
+                frappe.throw(f"Rate is mandatory for {row.item_code}")
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    
