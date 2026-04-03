@@ -78,32 +78,51 @@ frappe.ui.form.on('Job Order', {
 
     if (frm.doc.docstatus === 1) {
 
-        frappe.db.get_list('Sales Invoice', {
-            filters: { custom_job_order: frm.doc.name, docstatus: 1 },
-            limit: 1
-        }).then((invoice) => {
+    frappe.db.get_list('Sales Invoice', {
+        filters: { custom_job_order: frm.doc.name },
+        fields: ['name', 'docstatus']
+    }).then((invoices) => {
 
-            if (!invoice.length) {
-                frm.add_custom_button('Sales Invoice', () => {
+        let has_invoice = false;
+        let has_draft = false;
+        let has_submitted = false;
 
-                    frappe.call({
-                        method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
-                        args: {
-                            source_name: frm.doc.name
-                        },
-                        callback: function(r) {
-                            if (!r.exc) {
-                                let doc = frappe.model.sync(r.message)[0];
-                                frappe.set_route('Form', doc.doctype, doc.name);
-                            }
-                        }
-                    });
+        if (invoices.length) {
+            has_invoice = true;
 
-                }, 'Create');
+            invoices.forEach(inv => {
+                if (inv.docstatus === 0) has_draft = true;
+                if (inv.docstatus === 1) has_submitted = true;
+            });
+        }
+
+        frm.add_custom_button('Sales Invoice', () => {
+
+            if (has_draft) {
+                frappe.throw(__('A Draft Sales Invoice already exists for this Job Order'));
             }
 
-        });
-    }
+            if (has_submitted) {
+                frappe.throw(__('A Submitted Sales Invoice already exists for this Job Order'));
+            }
+
+            frappe.call({
+                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
+                args: {
+                    source_name: frm.doc.name
+                },
+                callback: function(r) {
+                    if (!r.exc) {
+                        let doc = frappe.model.sync(r.message)[0];
+                        frappe.set_route('Form', doc.doctype, doc.name);
+                    }
+                }
+            });
+
+        }, 'Create');
+
+    });
+}
     if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {
 
     frm.add_custom_button('Quotation', () => {
