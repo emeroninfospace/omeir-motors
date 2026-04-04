@@ -406,8 +406,8 @@ def make_material_request_from_jo(job_order):
             "stock_uom": item_doc.stock_uom,
             "conversion_factor": 1,
             "schedule_date": frappe.utils.nowdate(),
-            "from_warehouse": job_order.warehouse,
-            "warehouse": default_warehouse,
+            "from_warehouse": default_warehouse,
+            "warehouse": job_order.warehouse,
             "allow_zero_valuation_rate": 1
         })
 
