@@ -499,3 +499,55 @@ def create_multiple_allocations(job_order):
         created_docs.append(ta.name)
 
     return created_docs
+
+
+@frappe.whitelist()
+def make_bulk_sales_invoice(job_orders, payment_type=None, due_date=None, posting_date=None):
+    import json
+
+    if isinstance(job_orders, str):
+        job_orders = json.loads(job_orders)
+
+    created_invoices = []
+
+    for jo in job_orders:
+
+        job_doc = frappe.get_doc("Job Order", jo)
+
+        if job_doc.docstatus != 1:
+            frappe.throw(f"Job Order {jo} is not Submitted")
+
+        if job_doc.status != "Pending":
+            frappe.throw(f"Job Order {jo} is not in Pending status")
+
+        existing = frappe.db.get_value(
+            "Sales Invoice",
+            {"custom_job_order": jo, "docstatus": ["!=", 2]},
+            "name"
+        )
+
+        if existing:
+            frappe.throw(f"Sales Invoice already exists for Job Order {jo}: {existing}")
+
+        doc = make_sales_invoice(jo)
+
+        doc.custom_payment_type = payment_type
+        doc.due_date = due_date
+        doc.naming_series = get_naming_series(payment_type)
+        doc.set_posting_time = 1
+        doc.posting_date = posting_date
+
+        doc.insert(ignore_permissions=True)
+
+        created_invoices.append(doc.name)
+
+    return created_invoices
+
+
+def get_naming_series(payment_type):
+    return {
+        "CREDIT": "BOM-SICR-.YYYY.-.####",
+        "CASH": "BOM-SICS-.YYYY.-.####",
+        "WARRANTY": "BOM-SIWR-.YYYY.-.####",
+        "INSURANCE": "BOM-SIIN-.YYYY.-.####"
+    }.get(payment_type)
