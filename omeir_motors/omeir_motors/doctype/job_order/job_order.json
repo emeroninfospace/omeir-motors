@@ -266,12 +266,14 @@
    "label": "Service Item"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "service_item",
    "fieldtype": "Table",
    "label": "Service Item",
    "options": "Service Item"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_amount_service",
    "fieldtype": "Currency",
    "label": "Total Amount",
@@ -282,6 +284,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_quantity_service",
    "fieldtype": "Float",
    "label": "Total Quantity",
@@ -328,6 +331,7 @@
    "label": "Job Order Items"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "job_order_items",
    "fieldtype": "Table",
    "label": "Job Order Items",
@@ -338,6 +342,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_quantity",
    "fieldtype": "Float",
    "label": "Total Quantity",
@@ -348,6 +353,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_amount",
    "fieldtype": "Currency",
    "label": "Total Amount",
@@ -378,7 +384,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-02 12:58:59.833774",
+ "modified": "2026-04-05 15:13:20.270394",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
