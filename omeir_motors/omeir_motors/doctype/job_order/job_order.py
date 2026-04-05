@@ -537,11 +537,41 @@ def make_bulk_sales_invoice(job_orders, payment_type=None, due_date=None, postin
         doc.set_posting_time = 1
         doc.posting_date = posting_date
 
+        tax_template = get_tax_template(doc.company, doc.customer)
+        if tax_template:
+            doc.taxes_and_charges = tax_template
+            doc.set_taxes()  
+        doc.run_method("set_missing_values")
+        doc.run_method("calculate_taxes_and_totals")
+
         doc.insert(ignore_permissions=True)
 
         created_invoices.append(doc.name)
 
     return created_invoices
+
+
+def get_tax_template(company, customer):
+   
+    customer_tax_category = frappe.db.get_value("Customer", customer, "tax_category")
+    if customer_tax_category:
+        template = frappe.db.get_value(
+            "Sales Taxes and Charges Template",
+            {"tax_category": customer_tax_category, "company": company, "disabled": 0},
+            "name"
+        )
+        if template:
+            return template
+
+    template = frappe.db.get_value(
+        "Sales Taxes and Charges Template",
+        {"is_default": 1, "company": company, "disabled": 0},
+        "name"
+    )
+    if template:
+        return template
+
+    return None
 
 
 def get_naming_series(payment_type):
