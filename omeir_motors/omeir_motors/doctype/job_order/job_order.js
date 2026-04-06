@@ -308,7 +308,20 @@ frappe.ui.form.on('Service Item', {
     },
 
 });
-function calculate_row_duration(frm, cdt, cdn) {
+frappe.ui.form.on('Sublet Items', {
+    item_code: function(frm, cdt, cdn) {
+        fetch_description(cdt, cdn);
+    },
+    quantity: function(frm, cdt, cdn) {
+        calculate_sublet_amount(cdt, cdn);
+        calculate_sublet_totals(frm);
+    },
+    rate: function(frm, cdt, cdn) {
+        calculate_sublet_amount(cdt, cdn);
+        calculate_sublet_totals(frm);
+    },
+});
+    function calculate_row_duration(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
 
     if (row.start_time && row.end_time) {
@@ -333,10 +346,23 @@ function calculate_row_duration(frm, cdt, cdn) {
 function calculate_service_amount(cdt, cdn) {
     let row = locals[cdt][cdn];
     row.amount = (row.quantity || 0) * (row.rate || 0);
-    refresh_field('service_item'); 
+    refresh_field('sublet_details'); 
     
 }
-
+function calculate_sublet_amount(cdt, cdn) {
+    let row = locals[cdt][cdn];
+    row.amount = (row.quantity || 0) * (row.rate || 0);
+    refresh_field('sublet_details'); 
+    
+}
+function fetch_description(cdt, cdn) {
+    let row = locals[cdt][cdn];
+    row.description = frappe.db.get_value('Item', row.item_code, 'description', (r) => {
+        row.description = r.description;
+        refresh_field('sublet_details');
+    });
+    refresh_field('sublet_details');
+}
 function calculate_service_totals(frm) {
     let total_qty = 0;
     let total_amt = 0;
@@ -347,6 +373,17 @@ function calculate_service_totals(frm) {
     });
     frm.set_value('total_quantity_service', total_qty);
     frm.set_value('total_amount_service', total_amt);
+}
+function calculate_sublet_totals(frm) {
+    let total_qty = 0;
+    let total_amt = 0;
+
+    (frm.doc.sublet_details || []).forEach(row => {
+        total_qty += row.quantity || 0;
+        total_amt += row.amount || 0;
+    });
+    frm.set_value('total_qty_sub', total_qty);
+    frm.set_value('total_am_sub', total_amt);
 }
 
 
