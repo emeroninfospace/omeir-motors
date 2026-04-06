@@ -157,6 +157,21 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
         });
     }, 'Create');
 
+    frm.add_custom_button('Subcontract Work Order', () => {
+        frappe.call({
+            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_subcontract',
+            args: {
+                name: frm.doc.name
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    let doc = frappe.model.sync(r.message)[0];
+                    frappe.set_route('Form', doc.doctype, doc.name);
+                }
+            }
+        });
+    }, 'Create');
+
 }
 
     if (frm.doc.docstatus === 2) {

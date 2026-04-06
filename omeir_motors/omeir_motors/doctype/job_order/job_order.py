@@ -585,3 +585,27 @@ def get_naming_series(payment_type):
         "WARRANTY": "BOM-SIWR-.YYYY.-.####",
         "INSURANCE": "BOM-SIIN-.YYYY.-.####"
     }.get(payment_type)
+
+
+@frappe.whitelist()
+def make_subcontract(name):
+    order = frappe.get_doc("Job Order", name)
+    
+    subcontract = frappe.new_doc("Subcontract Work Order")
+    
+    subcontract.job_order = order.name
+    subcontract.company = order.company
+    subcontract.transaction_date = order.expected_completion_date
+    
+    if order.sublet_details:
+        for sublet in order.sublet_details:
+            subcontract.append("items", {
+                "item_code": sublet.item_code,
+                "item_name": sublet.item_name,
+                "quantity": sublet.quantity,
+                "rate": sublet.rate,
+                "amount": sublet.amount
+            })
+    
+    
+    return subcontract
