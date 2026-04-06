@@ -56,7 +56,13 @@
   "column_break_epvo",
   "total_amount",
   "requested_parts_section",
-  "request_parts"
+  "request_parts",
+  "sublet_expense_tab",
+  "sublet_details",
+  "section_break_mwjw",
+  "total_qty_sub",
+  "column_break_icwv",
+  "total_am_sub"
  ],
  "fields": [
   {
@@ -266,6 +272,7 @@
    "label": "Service Item"
   },
   {
+   "allow_bulk_edit": 1,
    "allow_on_submit": 1,
    "fieldname": "service_item",
    "fieldtype": "Table",
@@ -331,6 +338,7 @@
    "label": "Job Order Items"
   },
   {
+   "allow_bulk_edit": 1,
    "allow_on_submit": 1,
    "fieldname": "job_order_items",
    "fieldtype": "Table",
@@ -378,13 +386,48 @@
    "fieldtype": "Select",
    "label": "Series",
    "options": "JC.-.#####"
+  },
+  {
+   "fieldname": "sublet_expense_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sublet Expense"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "allow_on_submit": 1,
+   "fieldname": "sublet_details",
+   "fieldtype": "Table",
+   "label": "Sublet Details",
+   "options": "Sublet Items"
+  },
+  {
+   "fieldname": "section_break_mwjw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "total_qty_sub",
+   "fieldtype": "Float",
+   "label": "Total Quantity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_icwv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "total_am_sub",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-05 15:13:20.270394",
+ "modified": "2026-04-06 10:58:34.857239",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
