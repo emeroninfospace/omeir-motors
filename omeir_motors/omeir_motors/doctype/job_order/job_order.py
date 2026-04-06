@@ -16,6 +16,10 @@ class JobOrder(Document):
         self.create_vehicle_log()
 
     def validate_and_update_vehicle_odometer(self):
+        odo = frappe.db.get_single_value("Binomeir Settings", "odometer_validate")
+        if not odo:
+            return
+        
         if not self.vehicle or not self.odometer_value_last:
             return
 
