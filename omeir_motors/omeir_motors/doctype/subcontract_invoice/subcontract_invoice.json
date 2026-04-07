@@ -13,7 +13,8 @@
   "transaction_date",
   "subcontract_work_order",
   "amended_from",
-  "job_order",
+  "supplier_invoice_no",
+  "supplier_invoice_date",
   "section_break_uzrg",
   "project",
   "column_break_zuch",
@@ -299,25 +300,28 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "job_order",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Job Order",
-   "options": "Job Order",
-   "read_only": 1
-  },
-  {
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "label": "Paid Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "supplier_invoice_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supplier Invoice No"
+  },
+  {
+   "fieldname": "supplier_invoice_date",
+   "fieldtype": "Date",
+   "label": "Supplier Invoice Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-07 13:30:47.552377",
+ "modified": "2026-04-07 13:15:32.645959",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Invoice",

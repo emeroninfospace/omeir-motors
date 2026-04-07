@@ -35,6 +35,8 @@ def create_subcontract_invoice(docname):
     invoice.transaction_date = doc.transaction_date
     invoice.project = doc.project
     invoice.cost_center = doc.cost_center
+    invoice.supplier_invoice_no = doc.supplier_invoice_no
+    invoice.supplier_invoice_date = doc.supplier_invoice_date
     invoice.subcontract_work_order = doc.name
 
     total_qty = 0
