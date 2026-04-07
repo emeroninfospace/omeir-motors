@@ -46,6 +46,7 @@
   "totals_section",
   "grand_total",
   "column_break_njrn",
+  "paid_amount",
   "base_grand_total"
  ],
  "fields": [
@@ -304,13 +305,19 @@
    "label": "Job Order",
    "options": "Job Order",
    "read_only": 1
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-06 16:03:50.104864",
+ "modified": "2026-04-07 13:30:47.552377",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Invoice",
