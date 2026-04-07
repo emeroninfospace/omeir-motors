@@ -8,17 +8,11 @@ def get_data(data=None):
             "Vehicle Log": "custom_job_order",
             "Technician Allocation": "job_order",
             "Sales Invoice": "custom_job_order",
-            "Quotation": "custom_job_order",          
-            "Material Request": "custom_job_order"    
+            "Quotation": "custom_job_order",
+            "Material Request": "custom_job_order"
         },
 
-        "internal_links": {
-            "Vehicle Log": [],
-            "Technician Allocation": [],
-            "Sales Invoice": [],
-            "Quotation": [],          
-            "Material Request": []    
-        },
+        "internal_links": {},
 
         "transactions": [
             {
@@ -27,7 +21,7 @@ def get_data(data=None):
             },
             {
                 "label": _("Sales"),
-                "items": ["Sales Invoice", "Quotation"]   
+                "items": ["Sales Invoice", "Quotation"]
             },
             {
                 "label": _("Operations"),
@@ -35,7 +29,29 @@ def get_data(data=None):
             },
             {
                 "label": _("Stock"),
-                "items": ["Material Request"]   
+                "items": ["Material Request"]
+            },
+            {
+                "label": _("Subcontract"),
+                "items": ["Subcontract Work Order"]
             }
         ]
+    }
+
+
+
+import frappe
+
+def get_dashboard_data(data):
+    job_order = data.get("name")
+
+    work_orders = frappe.db.sql("""
+        SELECT COUNT(DISTINCT parent)
+        FROM `tabSubcontract Work Item`
+        WHERE job_order = %s
+    """, job_order)[0][0]
+    return {
+        "transactions": {
+            "Subcontract Work Order": work_orders
+        }
     }
