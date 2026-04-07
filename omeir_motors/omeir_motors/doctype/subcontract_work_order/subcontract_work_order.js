@@ -1,6 +1,6 @@
 frappe.ui.form.on("Subcontract Work Order", {
     refresh(frm) {
-        // calculate_totals(frm);
+        calculate_totals(frm);
         if (frm.doc.docstatus === 0) {
             frm.add_custom_button(
                 __("Job Order"),
