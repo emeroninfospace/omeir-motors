@@ -11,7 +11,6 @@
   "company",
   "column_break_hrkg",
   "transaction_date",
-  "job_order",
   "accounting_dimensions_section_section",
   "project",
   "column_break_cawq",
@@ -275,19 +274,13 @@
   {
    "fieldname": "column_break_fqpi",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "job_order",
-   "fieldtype": "Link",
-   "label": "Job Order",
-   "options": "Job Order"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-06 15:46:11.664030",
+ "modified": "2026-04-07 11:10:42.231411",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Work Order",
