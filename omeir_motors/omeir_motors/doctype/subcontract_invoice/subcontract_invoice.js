@@ -11,6 +11,7 @@ frappe.ui.form.on("Subcontract Invoice", {
             }, "View");
         }
         // calculate_taxes(frm);
+        make_payment(frm);
     },
 
     purchase_taxes_and_charges_add(frm) {
@@ -154,4 +155,79 @@ function calculate_taxes(frm) {
     frm.set_value("total_taxes_and_charges", total);
 
     frm.set_value("grand_total", running_total);
+}
+
+
+function make_payment(frm) {
+    if (frm.doc.docstatus === 1) {
+
+            frm.add_custom_button("Make Payment", () => {
+
+                let outstanding = (frm.doc.grand_total || 0) - (frm.doc.paid_amount || 0);
+
+                if (outstanding <= 0) {
+                    frappe.msgprint("Invoice already fully paid");
+                    return;
+                }
+
+                let d = new frappe.ui.Dialog({
+                    title: "Make Payment",
+                    fields: [
+                        {
+                            label: "Mode of Payment",
+                            fieldname: "mode_of_payment",
+                            fieldtype: "Link",
+                            options: "Mode of Payment",
+                            reqd: 1
+                        },
+                        {
+                            label: "Grand Total",
+                            fieldname: "grand_total",
+                            fieldtype: "Currency",
+                            read_only: 1,
+                            default: frm.doc.grand_total
+                        },
+                        {
+                            label: "Outstanding Amount",
+                            fieldname: "outstanding",
+                            fieldtype: "Currency",
+                            read_only: 1,
+                            default: outstanding
+                        },
+                        {
+                            label: "Amount",
+                            fieldname: "amount",
+                            fieldtype: "Currency",
+                            reqd: 1
+                        }
+                    ],
+                    primary_action_label: "Create Payment",
+                    primary_action(values) {
+
+                        if (values.amount > outstanding) {
+                            frappe.msgprint("Amount cannot exceed outstanding amount");
+                            return;
+                        }
+
+                        frappe.call({
+                            method: "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.make_payment_entry",
+                            args: {
+                                invoice: frm.doc.name,
+                                mode_of_payment: values.mode_of_payment,
+                                amount: values.amount
+                            },
+                            callback(r) {
+                                if (r.message) {
+                                    frappe.set_route("Form", "Journal Entry", r.message);
+                                }
+                            }
+                        });
+
+                        d.hide();
+                    }
+                });
+
+                d.show();
+            });
+        }
 }

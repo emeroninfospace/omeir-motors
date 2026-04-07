@@ -593,7 +593,7 @@ def make_subcontract(name):
     
     subcontract = frappe.new_doc("Subcontract Work Order")
     
-    subcontract.job_order = order.name
+    # subcontract.job_order = order.name
     subcontract.company = order.company
     subcontract.transaction_date = order.expected_completion_date
     
@@ -604,7 +604,8 @@ def make_subcontract(name):
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
                 "rate": sublet.rate,
-                "amount": sublet.amount
+                "amount": sublet.amount,
+                "job_order": order.name
             })
     
     

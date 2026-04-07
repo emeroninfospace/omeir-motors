@@ -7,9 +7,12 @@ from frappe.utils import getdate, add_days
 
 
 class SubcontractWorkOrder(Document):
-	def before_submit(self):
-		if not self.supplier:
-			frappe.throw("Please Select Supplier")
+    def on_submit(self):
+        self.db_set("status", "To Receive and Bill")
+
+    def before_submit(self):
+        if not self.supplier:
+            frappe.throw("Please Select Supplier")
 
 
 
@@ -28,7 +31,7 @@ def create_subcontract_invoice(docname):
     invoice = frappe.new_doc("Subcontract Invoice")
     invoice.supplier = doc.supplier
     invoice.company = doc.company
-    invoice.bill_of_quantity = doc.bill_of_quantity
+    # invoice.bill_of_quantity = doc.bill_of_quantity
     invoice.transaction_date = doc.transaction_date
     invoice.project = doc.project
     invoice.cost_center = doc.cost_center
@@ -44,6 +47,7 @@ def create_subcontract_invoice(docname):
         row.quantity = item.quantity
         row.rate = item.rate
         row.amount = item.amount
+        row.job_order = item.job_order
 
         total_qty += item.quantity or 0
         total_amt += item.amount or 0
@@ -67,7 +71,7 @@ def create_subcontract_invoice(docname):
     invoice.grand_total = doc.grand_total
 
     invoice.insert(ignore_permissions=True)
-
+    doc.db_set("status", "To Bill")
     return invoice.name
 
 
@@ -94,3 +98,39 @@ def create_purchase_order(docname):
     return po.name
 
 
+@frappe.whitelist()
+def make_subcontract_work_order_from_job_order(source_name, target_doc=None, args=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.company = source.company
+
+    def update_item(source, target, source_parent):
+        target.item_code = source.item_code
+        target.item_name = source.item_name
+        target.uom = source.uom
+        target.description = source.description
+        target.quantity = source.quantity
+        target.rate = source.rate
+        target.amount = source.amount
+
+    doc = get_mapped_doc(
+        "Job Order",
+        source_name,
+        {
+            "Job Order": {
+                "doctype": "Subcontract Work Order",
+                "validation": {
+                    "docstatus": ["in", [0,1]]
+                }
+            },
+            "Sublet Items": {
+                "doctype": "Subcontract Work Item",
+                "postprocess": update_item
+            }
+        },
+        target_doc,
+        set_missing_values
+    )
+
+    return doc

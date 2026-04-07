@@ -1,6 +1,28 @@
 frappe.ui.form.on("Subcontract Work Order", {
     refresh(frm) {
-        calculate_totals(frm);
+        // calculate_totals(frm);
+        if (frm.doc.docstatus === 0) {
+            frm.add_custom_button(
+                __("Job Order"),
+                function () {
+                    erpnext.utils.map_current_doc({
+                        method: "omeir_motors.omeir_motors.doctype.subcontract_work_order.subcontract_work_order.make_subcontract_work_order_from_job_order",
+                        source_doctype: "Job Order",
+                        target: frm,
+                        setters: {
+                            company: frm.doc.company || undefined
+                        },
+                        get_query_filters: {
+                            docstatus: ["in", [0, 1]]
+                        },
+                        allow_child_item_selection: true,
+                        child_fieldname: "sublet_details",
+                        child_columns: ["item_code", "item_name", "quantity", "amount"]
+                    });
+                },
+                __("Get Items From")
+            );
+        }
         if (frm.doc.docstatus === 1 && frm.doc.supplier) {
 
             frm.add_custom_button("Subcontract Invoice", () => {
@@ -185,4 +207,57 @@ function calculate_taxes(frm) {
     frm.set_value("total_taxes_and_charges", total);
 
     frm.set_value("grand_total", running_total);
+}
+
+function fetch_job_orders(frm) {
+    frm.add_custom_button("Get Items from Job Order", () => {
+
+            let d = new frappe.ui.Dialog({
+                title: "Select Job Order",
+                fields: [
+                    {
+                        label: "Job Order",
+                        fieldname: "job_order",
+                        fieldtype: "Link",
+                        options: "Job Order",
+                        reqd: 1
+                    }
+                ],
+                primary_action_label: "Get Items",
+                primary_action(values) {
+
+                    frappe.call({
+                        method: "omeir_motors.omeir_motors.doctype.subcontract_work_order.subcontract_work_order.get_items_from_job_order",
+                        args: {
+                            job_order: values.job_order
+                        },
+                        callback(r) {
+                            if (r.message) {
+
+                                frm.clear_table("items");
+
+                                r.message.forEach(item => {
+                                    let row = frm.add_child("items");
+
+                                    row.item_code = item.item_code;
+                                    row.item_name = item.item_name;
+                                    row.uom = item.uom;
+                                    row.description = item.description;
+                                    row.quantity = item.quantity;
+                                    row.rate = item.rate;
+                                    row.amount = item.amount;
+                                });
+
+                                frm.refresh_field("items");
+                                calculate_totals(frm);
+                            }
+                        }
+                    });
+
+                    d.hide();
+                }
+            });
+
+            d.show();
+        });
 }
