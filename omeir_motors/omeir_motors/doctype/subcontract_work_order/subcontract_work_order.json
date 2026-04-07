@@ -12,6 +12,8 @@
   "column_break_hrkg",
   "transaction_date",
   "status",
+  "supplier_invoice_no",
+  "supplier_invoice_date",
   "accounting_dimensions_section_section",
   "project",
   "column_break_cawq",
@@ -57,6 +59,8 @@
   {
    "fieldname": "supplier",
    "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
    "label": "Supplier",
    "options": "Supplier"
   },
@@ -73,6 +77,8 @@
    "default": "now",
    "fieldname": "transaction_date",
    "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
    "label": "Transaction Date"
   },
   {
@@ -282,13 +288,24 @@
    "label": "Status",
    "options": "\nDraft\nTo Receive and Bill\nTo Bill\nPartially Billed\nPaid",
    "read_only": 1
+  },
+  {
+   "fieldname": "supplier_invoice_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supplier Invoice No"
+  },
+  {
+   "fieldname": "supplier_invoice_date",
+   "fieldtype": "Date",
+   "label": "Supplier Invoice Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-07 14:00:44.553125",
+ "modified": "2026-04-07 13:14:28.110262",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Work Order",
