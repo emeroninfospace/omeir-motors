@@ -7,6 +7,10 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt, nowdate
 
 class JobOrder(Document):
+    def validate(self):
+        self.calculate_total()
+        self.validate_employee()
+        self.validate_job_order_item_rate()
 
     def before_save(self):
         self.validate_and_update_vehicle_odometer()
@@ -134,9 +138,35 @@ class JobOrder(Document):
         self.total_quantity = total_quantity
         self.total_amount = total_amount
 
-    def validate(self):
-        self.calculate_total()
-    
+    def validate_employee(self):
+        for row in self.service_item:
+            if not row.employee:
+                frappe.throw("Please select employee in Service Table")
+
+    def validate_job_order_item_rate(self):
+        margin = frappe.db.get_single_value("Binomeir Settings", "job_order_margin") or 0
+
+        for row in self.job_order_items:
+            if not row.item_code or not row.rate:
+                continue
+
+            valuation_rate = frappe.db.get_value(
+                "Bin",
+                {
+                    "item_code": row.item_code
+                },
+                "valuation_rate"
+            ) or 0
+
+            if not valuation_rate:
+                continue
+            min_rate = valuation_rate + (valuation_rate * margin / 100)
+
+            if row.rate < min_rate:
+                frappe.throw(
+                    f"Row {row.idx}: Rate cannot be less than {min_rate} "
+                    f"(Cost {valuation_rate} + {margin}%)"
+                )
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    
@@ -610,3 +640,4 @@ def make_subcontract(name):
     
     
     return subcontract
+
