@@ -258,7 +258,8 @@ fixtures = [
         "dt": "Custom HTML Block",
         "filters": [
             ["name", "in", [
-                "Vehicle Service Dashboard"
+                "Vehicle Service Dashboard",
+                "Workshop Dashboard"
             ]]
         ]
     }
