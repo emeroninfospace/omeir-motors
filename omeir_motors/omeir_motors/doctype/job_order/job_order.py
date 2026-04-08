@@ -147,7 +147,7 @@ class JobOrder(Document):
         margin = frappe.db.get_single_value("Binomeir Settings", "job_order_margin") or 0
 
         for row in self.job_order_items:
-            if not row.item_code or not row.rate:
+            if not row.item_code:
                 continue
 
             valuation_rate = frappe.db.get_value(
