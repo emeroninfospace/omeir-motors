@@ -8,8 +8,10 @@
  "field_order": [
   "customer_info_section",
   "customer",
-  "customer_address",
+  "customer_name",
   "column_break_mshq",
+  "customer_address",
+  "address",
   "type",
   "quotation",
   "vehicle_info_section",
@@ -44,7 +46,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nMultibrand\nPhoto",
+   "options": "\nMultibrand\nFoton",
    "read_only": 1
   },
   {
@@ -99,12 +101,26 @@
    "fieldtype": "Float",
    "label": "Total Quantity",
    "read_only": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "customer.primary_address",
+   "fieldname": "address",
+   "fieldtype": "Text",
+   "label": "Address",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 13:23:40.414722",
+ "modified": "2026-04-08 15:06:19.908594",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Service Notification",
