@@ -1,5 +1,6 @@
 frappe.ui.form.on('Sales Invoice', {
     custom_payment_type: function(frm) {
+        if(frm.doc.custom_invoice_type == 'Job Card Invoice'){
         if (frm.doc.custom_payment_type == 'CREDIT') {
             frm.set_value('naming_series', 'BOM-SICR-.YYYY.-.####');
         }
@@ -12,6 +13,15 @@ frappe.ui.form.on('Sales Invoice', {
         else if (frm.doc.custom_payment_type == 'INSURANCE') {
             frm.set_value('naming_series', 'BOM-SIIN-.YYYY.-.####');
         }
+    }
+    else if(frm.doc.custom_invoice_type == 'Notification Invoice'){
+        if (frm.doc.custom_payment_type == 'CREDIT') {
+            frm.set_value('naming_series', 'BOM-SNCR-.YYYY.-.####');
+        }
+        else if (frm.doc.custom_payment_type == 'CASH') {
+            frm.set_value('naming_series', 'BOM-SNCS-.YYYY.-.####');
+        }
+    }
     },
     
     refresh: function(frm) {

@@ -175,7 +175,10 @@ def make_sales_invoice(source_name, target_doc=None):
         target.posting_date = nowdate()
         target.set_posting_time = 1
         target.update_stock = 1
+        target.ignore_pricing_rule = 1
         target.set_warehouse = source.warehouse
+        target.selling_price_list = ""
+
         if source.company:
             target.company = source.company
         if source.vehicle:
@@ -196,44 +199,85 @@ def make_sales_invoice(source_name, target_doc=None):
             target.custom_year = source.year
         if source.chasis_number:
             target.custom_chasis_number = source.chasis_number
-            
+
+        cost_center = frappe.db.get_value("Company", source.company, "cost_center")
+        target.set("items", [])
+
+        item_map = {}
+        for item in source.get("job_order_items") or []:
+            item_map[item.item_code] = {
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "quantity": item.quantity,
+                "rate": item.rate,
+                "source_table": "job_order_items"
+            }
+        for item in source.get("service_item") or []:
+            item_map[item.item_code] = {
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "quantity": item.quantity,
+                "rate": item.rate,
+                "source_table": "service_item"
+            }
+        
+        for item in source.get("sublet_details") or []:
+            item_map[item.item_code] = {
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "quantity": item.quantity,
+                "rate": item.rate,
+                "source_table": "sublet_details"
+            }
+
+        for item_code, item_data in item_map.items():
+        
+            income_account = frappe.db.get_value(
+                "Item Default",
+                {"parent": item_code, "company": source.company},
+                "income_account"
+            ) or frappe.db.get_value("Company", source.company, "default_income_account")
+
+            if not item_data.get("item_name"):
+                item_details = frappe.db.get_value(
+                    "Item",
+                    item_code,
+                    ["item_name", "stock_uom", "description"],
+                    as_dict=1
+                )
+                if item_details:
+                    item_data["item_name"] = item_details.item_name
+                    item_data["description"] = item_details.description
+                    item_data["uom"] = item_data.get("uom") or item_details.stock_uom
+
+            target.append("items", {
+                "item_code": item_code,
+                "item_name": item_data.get("item_name"),
+                "description": item_data.get("description"),
+                "uom": item_data.get("uom"),
+                "stock_uom": item_data.get("uom"),
+                "conversion_factor": 1,
+                "qty": item_data.get("quantity", 0),
+                "price_list_rate": item_data.get("rate", 0), 
+                "rate": item_data.get("rate", 0),              
+                "amount": flt(item_data.get("quantity", 0)) * flt(item_data.get("rate", 0)),
+                "income_account": income_account,
+                "warehouse": source.warehouse,
+                "cost_center": cost_center
+            })
+
         if target.get("items"):
             total_qty = sum([flt(item.qty) for item in target.items])
             target.total_qty = total_qty
             target.total = source.total_amount or 0
             target.grand_total = source.total_amount or 0
             target.outstanding_amount = source.total_amount or 0
-
-    def update_item(source, target, source_parent):
-        target.item_code = source.item_code
-        target.item_name = source.item_name
-        target.description = source.description
-        target.qty = source.quantity
-        target.rate = source.rate
-        target.amount = source.amount
-        target.uom = source.uom
-        
-        if not target.income_account:
-            income_account = frappe.db.get_value("Item Default", 
-                {"parent": source.item_code, "company": source_parent.company}, 
-                "income_account")
-            if not income_account:
-                income_account = frappe.db.get_value("Company", 
-                    source_parent.company, "default_income_account")
-            target.income_account = income_account
-        
-        if source.item_code:
-            item_data = frappe.db.get_value(
-            "Item",
-            source.item_code,
-            ["item_name", "stock_uom", "description"],
-            as_dict=1
-        )
-            if item_data:
-                target.item_name = item_data.item_name
-                target.uom = item_data.stock_uom
-                target.stock_uom = item_data.stock_uom
-                target.conversion_factor = 1
 
     doc = get_mapped_doc(
         "Job Order",
@@ -243,44 +287,19 @@ def make_sales_invoice(source_name, target_doc=None):
                 "doctype": "Sales Invoice",
                 "field_map": {
                     "customer": "customer",
-                    "name": "custom_job_order", 
+                    "name": "custom_job_order",
                     "posting_date": "posting_date",
                     "transaction_date": "posting_date",
                     "total_amount": "total",
                     "currency": "currency",
                     "conversion_rate": "conversion_rate"
                 }
-            },
-            "Job Order Item": {   
-                "doctype": "Sales Invoice Item",
-                "field_map": {
-                    "item_code": "item_code",
-                    "item_name": "item_name",
-                    "uom": "uom",
-                    "description": "description",
-                    "quantity": "qty",   
-                    "rate": "rate",
-                    "amount": "amount"
-                },
-                "postprocess": update_item
-            },
-            "Service Item": {   
-            "doctype": "Sales Invoice Item",
-            "field_map": {
-                "item_code": "item_code",
-                "item_name": "item_name",
-                "description": "description",
-                "quantity": "qty",   
-                "rate": "rate",
-                "amount": "amount"
-            },
-            "postprocess": update_item
-        }
+            }
         },
         target_doc,
         set_missing_values
     )
-
+    
     return doc
 
 
