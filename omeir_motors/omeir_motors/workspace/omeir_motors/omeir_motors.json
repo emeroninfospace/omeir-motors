@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"ClJNJ-vEZQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Omeir Motors</span>\",\"col\":12}},{\"id\":\"g67sYSXB4l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"KufK76SkuU\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Technician Allocation\",\"col\":3}},{\"id\":\"0VyGMYUEFi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"dg1ZuubFBE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"E9UuIgUo23\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Subcontract Work Order\",\"col\":3}},{\"id\":\"S0RbN8wgth\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Subcontract Invoice\",\"col\":3}},{\"id\":\"H6Pnfx4hA3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Notification\",\"col\":3}},{\"id\":\"2yqc2w6aO9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"r35qEosm-t\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":3}},{\"id\":\"IU0jAQ4XiN\",\"type\":\"card\",\"data\":{\"card_name\":\"Job Management\",\"col\":3}},{\"id\":\"GQaMlUn27G\",\"type\":\"card\",\"data\":{\"card_name\":\"Subcontract Details\",\"col\":3}},{\"id\":\"6b0jL7GeTZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Vehicle Info\",\"col\":3}},{\"id\":\"xlA3xFEP18\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Workshop Dashboard\",\"col\":12}}]",
+ "content": "[{\"id\":\"ClJNJ-vEZQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Omeir Motors</span>\",\"col\":12}},{\"id\":\"g67sYSXB4l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"KufK76SkuU\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Technician Allocation\",\"col\":3}},{\"id\":\"0VyGMYUEFi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"dg1ZuubFBE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"E9UuIgUo23\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Subcontract Work Order\",\"col\":3}},{\"id\":\"S0RbN8wgth\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Subcontract Invoice\",\"col\":3}},{\"id\":\"H6Pnfx4hA3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Notification\",\"col\":3}},{\"id\":\"QW1PYZtW1F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vat Tax Report\",\"col\":3}},{\"id\":\"2yqc2w6aO9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"r35qEosm-t\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":3}},{\"id\":\"IU0jAQ4XiN\",\"type\":\"card\",\"data\":{\"card_name\":\"Job Management\",\"col\":3}},{\"id\":\"GQaMlUn27G\",\"type\":\"card\",\"data\":{\"card_name\":\"Subcontract Details\",\"col\":3}},{\"id\":\"6b0jL7GeTZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Vehicle Info\",\"col\":3}},{\"id\":\"xlA3xFEP18\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Workshop Dashboard\",\"col\":12}}]",
  "creation": "2026-03-17 14:36:04.510569",
  "custom_blocks": [
   {
@@ -195,7 +195,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-08 15:40:10.931481",
+ "modified": "2026-04-10 10:39:19.932445",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Omeir Motors",
@@ -214,6 +214,14 @@
    "link_to": "Service Notification",
    "stats_filter": "[]",
    "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Vat Tax Report",
+   "link_to": "Vat Tax Report",
+   "report_ref_doctype": "GL Entry",
+   "type": "Report"
   },
   {
    "color": "Grey",
