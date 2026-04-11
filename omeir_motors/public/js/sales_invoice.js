@@ -1,27 +1,31 @@
 frappe.ui.form.on('Sales Invoice', {
+    custom_invoice_type: function(frm) {
+        if (frm.doc.custom_payment_type && frm.doc.custom_invoice_type) {
+            frm.trigger('custom_payment_type');
+        }
+    },
+    
     custom_payment_type: function(frm) {
-        if(frm.doc.custom_invoice_type == 'Job Card Invoice'){
-        if (frm.doc.custom_payment_type == 'CREDIT') {
-            frm.set_value('naming_series', 'BOM-SICR-.YYYY.-.####');
+        const naming_series_map = {
+            'Job Card Invoice': {
+                'CREDIT': 'BOM-SICR-.YYYY.-.####',
+                'CASH': 'BOM-SICS-.YYYY.-.####',
+                'WARRANTY': 'BOM-SIWR-.YYYY.-.####',
+                'INSURANCE': 'BOM-SIIN-.YYYY.-.####'
+            },
+            'Notification Invoice': {
+                'CREDIT': 'BOM-SNCR-.YYYY.-.####',
+                'CASH': 'BOM-SNCS-.YYYY.-.####'
+            }
+        };
+
+        const invoice_type = frm.doc.custom_invoice_type;
+        const payment_type = frm.doc.custom_payment_type;
+        const series = naming_series_map[invoice_type]?.[payment_type];
+
+        if (series) {
+            frm.set_value('naming_series', series);
         }
-        else if (frm.doc.custom_payment_type == 'CASH') {
-            frm.set_value('naming_series', 'BOM-SICS-.YYYY.-.####');
-        }
-        else if (frm.doc.custom_payment_type == 'WARRANTY') {
-            frm.set_value('naming_series', 'BOM-SIWR-.YYYY.-.####');
-        }
-        else if (frm.doc.custom_payment_type == 'INSURANCE') {
-            frm.set_value('naming_series', 'BOM-SIIN-.YYYY.-.####');
-        }
-    }
-    else if(frm.doc.custom_invoice_type == 'Notification Invoice'){
-        if (frm.doc.custom_payment_type == 'CREDIT') {
-            frm.set_value('naming_series', 'BOM-SNCR-.YYYY.-.####');
-        }
-        else if (frm.doc.custom_payment_type == 'CASH') {
-            frm.set_value('naming_series', 'BOM-SNCS-.YYYY.-.####');
-        }
-    }
     },
     
     refresh: function(frm) {

@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "odometer_validate",
+  "validate_employee",
   "column_break_zrde",
   "sublet_margin",
   "job_order_margin"
@@ -30,13 +31,19 @@
    "fieldname": "job_order_margin",
    "fieldtype": "Percent",
    "label": "Job Order Margin"
+  },
+  {
+   "default": "1",
+   "fieldname": "validate_employee",
+   "fieldtype": "Check",
+   "label": "Validate Employee"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-08 09:55:33.835276",
+ "modified": "2026-04-11 14:15:10.112901",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Binomeir Settings",

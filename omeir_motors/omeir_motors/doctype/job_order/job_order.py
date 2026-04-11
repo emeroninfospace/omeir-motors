@@ -139,6 +139,9 @@ class JobOrder(Document):
         self.total_amount = total_amount
 
     def validate_employee(self):
+        validate = frappe.db.get_single_value("Binomeir Settings", "validate_employee")
+        if not validate:
+            return
         for row in self.service_item:
             if not row.employee:
                 frappe.throw("Please select employee in Service Table")
