@@ -16,7 +16,8 @@ class ServiceNotification(Document):
 
 
 @frappe.whitelist()
-def make_sales_invoice(source_name, target_doc=None):    
+def make_sales_invoice(source_name, target_doc=None):
+
     def set_missing_values(source, target):
         target.customer = source.customer
         target.posting_date = source.posting_date
@@ -28,62 +29,13 @@ def make_sales_invoice(source_name, target_doc=None):
         if source.company:
             target.company = source.company
 
-        cost_center = frappe.db.get_value("Company", source.company, "cost_center")
-        target.set("items", [])
+        target.run_method("set_missing_values")
+        target.run_method("calculate_taxes_and_totals")
 
-        item_list = []
-        for item in source.get("service_items") or []:
-            item_list.append({
-                "item_code": item.item_code,
-                "item_name": item.item_name,
-                "description": item.description,
-                "uom": item.uom,
-                "quantity": item.quantity,
-                "rate": item.rate,
-            })
-
-        for item_data in item_list:
-            item_code = item_data["item_code"]
-
-            income_account = frappe.db.get_value(
-                "Item Default",
-                {"parent": item_code, "company": source.company},
-                "income_account"
-            ) or frappe.db.get_value("Company", source.company, "default_income_account")
-
-            if not item_data.get("item_name"):
-                item_details = frappe.db.get_value(
-                    "Item",
-                    item_code,
-                    ["item_name", "stock_uom", "description"],
-                    as_dict=1
-                )
-                if item_details:
-                    item_data["item_name"] = item_details.item_name
-                    item_data["description"] = item_details.description
-                    item_data["uom"] = item_data.get("uom") or item_details.stock_uom
-
-            target.append("items", {
-                "item_code": item_code,
-                "item_name": item_data.get("item_name"),
-                "description": item_data.get("description"),
-                "uom": item_data.get("uom"),
-                "stock_uom": item_data.get("uom"),
-                "conversion_factor": 1,
-                "qty": item_data.get("quantity", 0),
-                "price_list_rate": item_data.get("rate", 0),
-                "rate": item_data.get("rate", 0),
-                "amount": flt(item_data.get("quantity", 0)) * flt(item_data.get("rate", 0)),
-                "income_account": income_account,
-                "cost_center": cost_center
-            })
-
-        if target.get("items"):
-            total_qty = sum([flt(item.qty) for item in target.items])
-            target.total_qty = total_qty
-            target.total = source.total_amount or 0
-            target.grand_total = source.total_amount or 0
-            target.outstanding_amount = source.total_amount or 0
+    def update_item(source_doc, target_doc, source_parent):
+        """Set price_list_rate from Service Notification Item rate"""
+        target_doc.rate = source_doc.rate
+        target_doc.price_list_rate = source_doc.rate  # ✅ set service item rate as price list rate
 
     doc = get_mapped_doc(
         "Service Notification",
@@ -95,11 +47,20 @@ def make_sales_invoice(source_name, target_doc=None):
                     "customer": "customer",
                     "name": "custom_service_notification",
                     "posting_date": "posting_date",
-                    "transaction_date": "posting_date",
                     "total_amount": "total",
-                    "currency": "currency",
-                    "conversion_rate": "conversion_rate"
                 }
+            },
+            "Service Item": {
+                "doctype": "Sales Invoice Item",
+                "field_map": {
+                    "item_code": "item_code",
+                    "item_name": "item_name",
+                    "description": "description",
+                    "qty": "qty",
+                    "uom": "uom",
+                    "rate": "rate",
+                },
+                "postprocess": update_item,  # ✅ override price_list_rate after mapping
             }
         },
         target_doc,
