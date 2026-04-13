@@ -47,11 +47,7 @@ def get_workshop_dashboard_data():
             GROUP BY si.employee
         ) active_si ON active_si.employee = emp.name
         WHERE emp.status = 'Active'
-          AND (
-              emp.designation LIKE '%Technician%'
-              OR emp.department LIKE '%Workshop%'
-              OR emp.department LIKE '%Service%'
-          )
+          AND emp.department IN ('SERVICE OPERATIONS - BOMC', 'SERVICE - BOMC')
         ORDER BY status ASC, emp.employee_name ASC
     """, as_dict=True)
 
