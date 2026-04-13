@@ -30,6 +30,12 @@ frappe.ui.form.on('Job Order', {
             };
         });
     },
+    onload: function(frm) {
+        frappe.db.get_single_value('Binomeir Settings', 'sublet_margin')
+            .then(value => {
+                frm.sublet_margin = value || 0;
+            });
+    },
 
     refresh: function(frm) {
         // frm.get_field('job_order_items').grid.cannot_add_rows = true;
@@ -328,12 +334,10 @@ frappe.ui.form.on('Sublet Items', {
         fetch_description(cdt, cdn);
     },
     quantity: function(frm, cdt, cdn) {
-        calculate_sublet_amount(cdt, cdn);
-        calculate_sublet_totals(frm);
+        calculate_sublet_amount(frm, cdt, cdn);
     },
     rate: function(frm, cdt, cdn) {
-        calculate_sublet_amount(cdt, cdn);
-        calculate_sublet_totals(frm);
+        calculate_sublet_amount(frm, cdt, cdn);
     },
 });
     function calculate_row_duration(frm, cdt, cdn) {
@@ -364,11 +368,21 @@ function calculate_service_amount(cdt, cdn) {
     refresh_field('sublet_details'); 
     
 }
-function calculate_sublet_amount(cdt, cdn) {
+function calculate_sublet_amount(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
-    row.amount = (row.quantity || 0) * (row.rate || 0);
-    refresh_field('sublet_details'); 
+
+    let qty = row.quantity || 0;
+    let rate = row.rate || 0;
+    let margin = frm.sublet_margin || 0;
+
     
+    let margin_amount = qty * (rate * margin / 100);
+    let amount = qty * margin_amount;
+
+    frappe.model.set_value(cdt, cdn, 'amount', amount);
+    frappe.model.set_value(cdt, cdn, 'margin_amount', margin_amount);
+
+    calculate_sublet_totals(frm);
 }
 function fetch_description(cdt, cdn) {
     let row = locals[cdt][cdn];
@@ -394,13 +408,13 @@ function calculate_sublet_totals(frm) {
     let total_amt = 0;
 
     (frm.doc.sublet_details || []).forEach(row => {
-        total_qty += row.quantity || 0;
-        total_amt += row.amount || 0;
+        total_qty += flt(row.quantity);
+        total_amt += flt(row.amount);
     });
+
     frm.set_value('total_qty_sub', total_qty);
     frm.set_value('total_am_sub', total_amt);
 }
-
 
 function toggle_totals(frm) {
     let has_service_items = (frm.doc.service_items || []).length > 0;
