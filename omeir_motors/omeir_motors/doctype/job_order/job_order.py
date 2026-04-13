@@ -202,13 +202,16 @@ def make_sales_invoice(source_name, target_doc=None):
             target.custom_year = source.year
         if source.chasis_number:
             target.custom_chasis_number = source.chasis_number
+        if source.complaint_details:
+            target.custom_service_description = source.complaint_details
 
         cost_center = frappe.db.get_value("Company", source.company, "cost_center")
         target.set("items", [])
 
-        item_map = {}
+        item_list = []
+        
         for item in source.get("job_order_items") or []:
-            item_map[item.item_code] = {
+            item_list.append({
                 "item_code": item.item_code,
                 "item_name": item.item_name,
                 "description": item.description,
@@ -216,9 +219,10 @@ def make_sales_invoice(source_name, target_doc=None):
                 "quantity": item.quantity,
                 "rate": item.rate,
                 "source_table": "job_order_items"
-            }
+            })
+        
         for item in source.get("service_item") or []:
-            item_map[item.item_code] = {
+            item_list.append({
                 "item_code": item.item_code,
                 "item_name": item.item_name,
                 "description": item.description,
@@ -226,10 +230,10 @@ def make_sales_invoice(source_name, target_doc=None):
                 "quantity": item.quantity,
                 "rate": item.rate,
                 "source_table": "service_item"
-            }
+            })
         
         for item in source.get("sublet_details") or []:
-            item_map[item.item_code] = {
+            item_list.append({
                 "item_code": item.item_code,
                 "item_name": item.item_name,
                 "description": item.description,
@@ -237,9 +241,10 @@ def make_sales_invoice(source_name, target_doc=None):
                 "quantity": item.quantity,
                 "rate": item.rate,
                 "source_table": "sublet_details"
-            }
+            })
 
-        for item_code, item_data in item_map.items():
+        for item_data in item_list:
+            item_code = item_data.get("item_code")
         
             income_account = frappe.db.get_value(
                 "Item Default",
@@ -251,12 +256,11 @@ def make_sales_invoice(source_name, target_doc=None):
                 item_details = frappe.db.get_value(
                     "Item",
                     item_code,
-                    ["item_name", "stock_uom", "description"],
+                    ["item_name", "stock_uom"],
                     as_dict=1
                 )
                 if item_details:
                     item_data["item_name"] = item_details.item_name
-                    item_data["description"] = item_details.description
                     item_data["uom"] = item_data.get("uom") or item_details.stock_uom
 
             target.append("items", {
