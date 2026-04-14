@@ -239,7 +239,7 @@ def make_sales_invoice(source_name, target_doc=None):
                 "description": item.description,
                 "uom": item.uom,
                 "quantity": item.quantity,
-                "rate": item.rate,
+                "rate": item.margin_amount,
                 "source_table": "sublet_details"
             })
 
