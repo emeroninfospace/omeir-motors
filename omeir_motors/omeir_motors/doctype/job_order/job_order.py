@@ -24,9 +24,6 @@ class JobOrder(Document):
         if not odo:
             return
         
-        if not self.vehicle or not self.odometer_value_last:
-            return
-
         vehicle_odometer = frappe.db.get_value(
             "Vehicle", self.vehicle, "last_odometer"
         )
