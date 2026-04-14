@@ -660,6 +660,7 @@ def make_subcontract(name):
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
                 "rate": sublet.rate,
+                "margin_amount":sublet.margin_amount,
                 "amount": sublet.amount,
                 "job_order": order.name
             })

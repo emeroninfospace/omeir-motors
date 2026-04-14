@@ -12,6 +12,7 @@
   "description",
   "quantity",
   "rate",
+  "margin_amount",
   "amount"
  ],
  "fields": [
@@ -63,13 +64,20 @@
    "in_list_view": 1,
    "label": "Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "margin_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Margin Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-06 09:40:19.498722",
+ "modified": "2026-04-13 17:21:18.827318",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Sublet Items",
