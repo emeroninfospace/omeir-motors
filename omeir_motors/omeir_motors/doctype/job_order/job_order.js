@@ -374,9 +374,10 @@ function calculate_sublet_amount(frm, cdt, cdn) {
     let qty = row.quantity || 0;
     let rate = row.rate || 0;
     let margin = frm.sublet_margin || 0;
+    console.log(margin);
 
     
-    let margin_amount = qty * (rate * margin / 100);
+    let margin_amount = qty * (rate * (1+margin / 100));
     let amount = qty * margin_amount;
 
     frappe.model.set_value(cdt, cdn, 'amount', amount);

@@ -244,7 +244,7 @@ function fetch_job_orders(frm) {
                                     row.uom = item.uom;
                                     row.description = item.description;
                                     row.quantity = item.quantity;
-                                    row.rate = item.rate;
+                                    row.rate = item.margin_amount;
                                     row.amount = item.amount;
                                 });
 
