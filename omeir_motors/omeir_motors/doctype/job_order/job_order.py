@@ -22,27 +22,25 @@ class JobOrder(Document):
     def validate_and_update_vehicle_odometer(self):
         odo = frappe.db.get_single_value("Binomeir Settings", "odometer_validate")
         if not odo:
-            return
-        
-        vehicle_odometer = frappe.db.get_value(
-            "Vehicle", self.vehicle, "last_odometer"
-        )
-
-        job_odometer = float(self.odometer_value_last or 0)
-        vehicle_odometer = float(vehicle_odometer or 0)
-
-        if job_odometer < vehicle_odometer:
-            frappe.throw(
-                f"Odometer cannot be less than current vehicle reading ({vehicle_odometer})"
+            vehicle_odometer = frappe.db.get_value(
+                "Vehicle", self.vehicle, "last_odometer"
             )
 
-        if job_odometer > vehicle_odometer:
-            frappe.db.set_value(
-                "Vehicle",
-                self.vehicle,
-                "last_odometer",
-                job_odometer
-            )
+            job_odometer = float(self.odometer_value_last or 0)
+            vehicle_odometer = float(vehicle_odometer or 0)
+
+            if job_odometer < vehicle_odometer:
+                frappe.throw(
+                    f"Odometer cannot be less than current vehicle reading ({vehicle_odometer})"
+                )
+
+            if job_odometer > vehicle_odometer:
+                frappe.db.set_value(
+                    "Vehicle",
+                    self.vehicle,
+                    "last_odometer",
+                    job_odometer
+                )
 
     def before_cancel(self):
 
