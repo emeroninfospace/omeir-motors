@@ -16,6 +16,7 @@ class JobOrder(Document):
         pass
 
     def on_submit(self):
+        pass
         # self.create_vehicle_log()
 
     # def validate_and_update_vehicle_odometer(self):
