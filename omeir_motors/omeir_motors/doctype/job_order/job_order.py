@@ -13,10 +13,11 @@ class JobOrder(Document):
         self.validate_job_order_item_rate()
 
     def before_save(self):
-        self.validate_and_update_vehicle_odometer()
+        pass
+        # self.validate_and_update_vehicle_odometer()
 
     def on_submit(self):
-        self.validate_and_update_vehicle_odometer()
+        # self.validate_and_update_vehicle_odometer()
         self.create_vehicle_log()
 
     def validate_and_update_vehicle_odometer(self):
