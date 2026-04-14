@@ -16,7 +16,7 @@ class JobOrder(Document):
         pass
 
     def on_submit(self):
-        self.create_vehicle_log()
+        # self.create_vehicle_log()
 
     # def validate_and_update_vehicle_odometer(self):
     #     odo = frappe.db.get_single_value("Binomeir Settings", "odometer_validate")
