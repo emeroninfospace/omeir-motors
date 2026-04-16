@@ -109,6 +109,35 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Subcontract Details",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Subcontract Work Order",
+   "link_count": 0,
+   "link_to": "Subcontract Work Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Subcontract Invoice",
+   "link_count": 0,
+   "link_to": "Subcontract Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Job Management",
    "link_count": 5,
    "link_type": "DocType",
@@ -118,7 +147,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Job Order",
+   "label": "Job Cards",
    "link_count": 0,
    "link_to": "Job Order",
    "link_type": "DocType",
@@ -164,38 +193,9 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Subcontract Details",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Subcontract Work Order",
-   "link_count": 0,
-   "link_to": "Subcontract Work Order",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Subcontract Invoice",
-   "link_count": 0,
-   "link_to": "Subcontract Invoice",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2026-04-10 10:39:19.932445",
+ "modified": "2026-04-16 10:43:53.474104",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Omeir Motors",
