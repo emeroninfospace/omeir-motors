@@ -160,6 +160,8 @@ def get_data(filters):
             # Remove the temporary journal_entry_name field
             row.pop("journal_entry_name", None)
         data.extend(expense_data)
+    
+    data = [row for row in data if flt(row.get("tax_amount", 0)) != 0]
 
     return data
 
