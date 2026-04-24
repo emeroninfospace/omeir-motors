@@ -16,6 +16,10 @@ frappe.ui.form.on('Sales Invoice', {
             'Notification Invoice': {
                 'CREDIT': 'BOM-SNCR-.YYYY.-.####',
                 'CASH': 'BOM-SNCS-.YYYY.-.####'
+            },
+            'Counter Invoice': {
+                'CREDIT': 'BOM-CSCR-.YYYY.-.####',
+                'CASH': 'BOM-CSCS-.YYYY.-.####'
             }
         };
 
