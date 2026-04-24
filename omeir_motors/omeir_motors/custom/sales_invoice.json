@@ -1997,7 +1997,7 @@
    "property": "options",
    "property_type": "Text",
    "row_name": null,
-   "value": "ACC-SINV-.YYYY.-\nACC-SINV-RET-.YYYY.-\nBOM-SICR-.YYYY.-.####\nBOM-SICS-.YYYY.-.####\nBOM-SIWR-.YYYY.-.####\nBOM-SIIN-.YYYY.-.####\nBOM-SNCR-.YYYY.-.####\nBOM-SNCS-.YYYY.-.####\nBOM-SI-RET-.####"
+   "value": "ACC-SINV-.YYYY.-\nACC-SINV-RET-.YYYY.-\nBOM-SICR-.YYYY.-.####\nBOM-SICS-.YYYY.-.####\nBOM-SIWR-.YYYY.-.####\nBOM-SIIN-.YYYY.-.####\nBOM-SNCR-.YYYY.-.####\nBOM-SNCS-.YYYY.-.####\nBOM-CSCS-.YYYY.-.####\nBOM-CSCR-.YYYY.-.####\nBOM-SI-RET-.####"
   },
   {
    "_assign": null,
