@@ -86,7 +86,7 @@ class SubcontractInvoice(Document):
         self.total_amount = 0
 
         for item in self.items:
-            item.amount = (item.quantity or 0) * (item.rate or 0)
+            item.amount = (item.rate or 0)
             self.total_quantity += item.quantity or 0
             self.total_amount += item.amount or 0
 
