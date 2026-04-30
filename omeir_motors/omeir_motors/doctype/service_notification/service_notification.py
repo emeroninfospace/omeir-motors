@@ -29,11 +29,7 @@ def make_sales_invoice(source_name, target_doc=None):
         if source.company:
             target.company = source.company
 
-        target.run_method("set_missing_values")
-        target.run_method("calculate_taxes_and_totals")
-
     def update_item(source_doc, target_doc, source_parent):
-        """Set price_list_rate from Service Notification Item rate"""
         target_doc.rate = source_doc.rate
         target_doc.price_list_rate = source_doc.rate  # ✅ set service item rate as price list rate
 
@@ -59,8 +55,10 @@ def make_sales_invoice(source_name, target_doc=None):
                     "qty": "qty",
                     "uom": "uom",
                     "rate": "rate",
+                    "in_time": "custom_in_date",
+                    "out_time": "custom_out_date"
                 },
-                "postprocess": update_item,  # ✅ override price_list_rate after mapping
+                "postprocess": update_item,  
             }
         },
         target_doc,
