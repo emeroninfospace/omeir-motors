@@ -40,6 +40,13 @@ frappe.listview_settings['Job Order'] = {
                 title: 'Enter Payment Details',
                 fields: [
                     {
+                        label: 'Invoice Type',
+                        fieldname: 'custom_invoice_type',
+                        fieldtype: 'Select',
+                        options: '\nJob Card Invoice\nNotification Invoice\nCounter Invoice',
+                        reqd: 1
+                    },
+                    {
                         label: 'Payment Type',
                         fieldname: 'custom_payment_type',
                         fieldtype: 'Select',
@@ -70,6 +77,8 @@ frappe.listview_settings['Job Order'] = {
                         args: {
                             job_orders: job_orders,
                             payment_type: values.custom_payment_type,
+                            invoice_type: values.custom_invoice_type,
+                            
                             due_date: values.due_date,
                             posting_date: values.posting_date
                         },
