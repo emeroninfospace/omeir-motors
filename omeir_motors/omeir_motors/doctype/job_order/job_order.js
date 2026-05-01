@@ -89,27 +89,19 @@ frappe.ui.form.on('Job Order', {
         fields: ['name', 'docstatus']
     }).then((invoices) => {
 
-        let has_invoice = false;
-        let has_draft = false;
-        let has_submitted = false;
-
-        if (invoices.length) {
-            has_invoice = true;
-
-            invoices.forEach(inv => {
-                if (inv.docstatus === 0) has_draft = true;
-                if (inv.docstatus === 1) has_submitted = true;
-            });
-        }
+        let active_invoices = invoices.filter(inv => inv.docstatus !== 2);
 
         frm.add_custom_button('Sales Invoice', () => {
 
-            if (has_draft) {
-                frappe.throw(__('A Draft Sales Invoice already exists for this Job Order'));
+            if (active_invoices.length >= 2) {
+                frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
+                return;
             }
 
-            if (has_submitted) {
-                frappe.throw(__('A Submitted Sales Invoice already exists for this Job Order'));
+            let has_draft = active_invoices.some(inv => inv.docstatus === 0);
+            if (has_draft) {
+                frappe.throw(__('A Draft Sales Invoice already exists. Please submit or cancel it before creating another.'));
+                return;
             }
 
             frappe.call({
