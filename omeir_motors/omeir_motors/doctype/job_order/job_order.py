@@ -15,7 +15,7 @@ class JobOrder(Document):
 
     def before_save(self):
         pass
-    
+
     def on_update(self):
         self.calculate_total()
 
@@ -559,7 +559,7 @@ def create_multiple_allocations(job_order):
 
 
 @frappe.whitelist()
-def make_bulk_sales_invoice(job_orders, payment_type=None, due_date=None, posting_date=None):
+def make_bulk_sales_invoice(job_orders, payment_type=None, invoice_type=None, due_date=None, posting_date=None):
     import json
 
     if isinstance(job_orders, str):
@@ -589,10 +589,24 @@ def make_bulk_sales_invoice(job_orders, payment_type=None, due_date=None, postin
         doc = make_sales_invoice(jo)
 
         doc.custom_payment_type = payment_type
+        doc.custom_invoice_type = invoice_type
         doc.due_date = due_date
-        doc.naming_series = get_naming_series(payment_type)
+        doc.naming_series = get_naming_series(invoice_type, payment_type)
         doc.set_posting_time = 1
         doc.posting_date = posting_date
+        doc.selling_price_list = frappe.db.get_value(
+            "Selling Settings", None, "selling_price_list"
+        ) or frappe.db.get_value(
+            "Price List", {"selling": 1, "enabled": 1}, "name"
+        )
+
+        # Set price list currency fields directly
+        if doc.selling_price_list:
+            price_list_currency = frappe.db.get_value(
+                "Price List", doc.selling_price_list, "currency"
+            )
+            doc.price_list_currency = price_list_currency or doc.currency
+            doc.plc_conversion_rate = 1
 
         tax_template = get_tax_template(doc.company, doc.customer)
         if tax_template:
@@ -631,13 +645,19 @@ def get_tax_template(company, customer):
     return None
 
 
-def get_naming_series(payment_type):
-    return {
-        "CREDIT": "BOM-SICR-.YYYY.-.####",
-        "CASH": "BOM-SICS-.YYYY.-.####",
-        "WARRANTY": "BOM-SIWR-.YYYY.-.####",
-        "INSURANCE": "BOM-SIIN-.YYYY.-.####"
-    }.get(payment_type)
+def get_naming_series(invoice_type, payment_type):
+    series_map = {
+        ("Job Card Invoice", "CREDIT"):      "BOM-SICR-.YYYY.-.####",
+        ("Job Card Invoice", "CASH"):        "BOM-SICS-.YYYY.-.####",
+        ("Job Card Invoice", "WARRANTY"):    "BOM-SIWR-.YYYY.-.####",
+        ("Job Card Invoice", "INSURANCE"):   "BOM-SIIN-.YYYY.-.####",
+        ("Notification Invoice", "CREDIT"):   "BOM-SNCR-.YYYY.-.####",
+        ("Notification Invoice", "CASH"):     "BOM-SNCS-.YYYY.-.####",
+        ("Counter Invoice", "CREDIT"):   "BOM-CSCR-.YYYY.-.####",
+        ("Counter Invoice", "CASH"):     "BOM-CSCS-.YYYY.-.####",
+    }
+
+    return series_map.get((invoice_type, payment_type))
 
 
 @frappe.whitelist()
