@@ -260,7 +260,8 @@ fixtures = [
         "filters": [
             ["name", "in", [
                 "Vehicle Service Dashboard",
-                "Workshop Dashboard"
+                "Workshop Dashboard",
+                "Overview Dashboard"
             ]]
         ]
     }

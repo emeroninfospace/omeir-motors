@@ -1,0 +1,34 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"8JK1G0S5_u\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Omeir Overview</span>\",\"col\":12}},{\"id\":\"K91f-oDD-5\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Overview Dashboard\",\"col\":12}}]",
+ "creation": "2026-05-05 12:52:52.629693",
+ "custom_blocks": [
+  {
+   "custom_block_name": "Overview Dashboard",
+   "label": "Overview Dashboard"
+  }
+ ],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "color-monthly-rank",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Omeir Overview",
+ "links": [],
+ "modified": "2026-05-05 12:55:51.504135",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Omeir Overview",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 9.0,
+ "shortcuts": [],
+ "title": "Omeir Overview"
+}
