@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Omeir Overview",
  "links": [],
- "modified": "2026-05-05 12:55:51.504135",
+ "modified": "2026-05-05 15:25:41.002831",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Omeir Overview",
@@ -27,7 +27,17 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ],
  "sequence_id": 9.0,
  "shortcuts": [],
  "title": "Omeir Overview"
