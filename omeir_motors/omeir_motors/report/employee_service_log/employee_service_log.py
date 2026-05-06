@@ -52,10 +52,31 @@ def get_columns():
             "width": 150,
         },
         {
-            "label": _("Total Duration"),
+            "label": _("Actual Duration (hrs)"),
+            "fieldname": "actual_hours",
+            "fieldtype": "Float",
+            "precision": 2,
+            "width": 140,
+        },
+        {
+            "label": _("Estimated Time (hrs)"),
+            "fieldname": "estimated_time",
+            "fieldtype": "Float",
+            "precision": 2,
+            "width": 140,
+        },
+        {
+            "label": _("Variance (hrs)"),
+            "fieldname": "variance_hours",
+            "fieldtype": "Float",
+            "precision": 2,
+            "width": 120,
+        },
+        {
+            "label": _("Total Duration (raw)"),
             "fieldname": "total_duration",
             "fieldtype": "Duration",
-            "width": 120,
+            "width": 130,
         },
         {
             "label": _("Job Card"),
@@ -124,8 +145,14 @@ def get_data(filters=None):
             si.start_time,
             si.end_time,
             si.total_duration,
-            jo.name                     AS job_order,
-            jo.expected_completion_date AS posting_date,
+            ROUND(IFNULL(si.total_duration, 0) / 3600, 2)          AS actual_hours,
+            IFNULL(itm.custom_estimate_time, 0)                      AS estimated_time,
+            ROUND(
+                IFNULL(itm.custom_estimate_time, 0)
+                - IFNULL(si.total_duration, 0) / 3600
+            , 2)                                                     AS variance_hours,
+            jo.name                                                  AS job_order,
+            jo.expected_completion_date                              AS posting_date,
             jo.job_type,
             jo.status,
             jo.customer,
@@ -138,6 +165,8 @@ def get_data(filters=None):
             `tabService Item` si ON si.parent = jo.name
         LEFT JOIN
             `tabEmployee` emp ON emp.name = si.employee
+        LEFT JOIN
+            `tabItem` itm ON itm.name = si.item_code
         WHERE
             si.employee IS NOT NULL
             AND si.employee != ''
