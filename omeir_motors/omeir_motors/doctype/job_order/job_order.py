@@ -178,6 +178,7 @@ def make_sales_invoice(source_name, target_doc=None):
         target.ignore_pricing_rule = 1
         target.set_warehouse = source.warehouse
         target.selling_price_list = ""
+        target.disable_rounded_total = 1
 
         if source.company:
             target.company = source.company
@@ -594,6 +595,7 @@ def make_bulk_sales_invoice(job_orders, payment_type=None, invoice_type=None, du
         doc.naming_series = get_naming_series(invoice_type, payment_type)
         doc.set_posting_time = 1
         doc.posting_date = posting_date
+        doc.disable_rounded_total = 1
         doc.selling_price_list = frappe.db.get_value(
             "Selling Settings", None, "selling_price_list"
         ) or frappe.db.get_value(
