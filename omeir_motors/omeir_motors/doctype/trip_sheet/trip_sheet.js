@@ -3,7 +3,6 @@
 
 frappe.ui.form.on("Trip Sheet", {
 	onload: function(frm) {
-        // Set driver filter to only show active employees with Driver designation
         frm.set_query('driver', function() {
             return {
                 filters: {
@@ -12,7 +11,6 @@ frappe.ui.form.on("Trip Sheet", {
             };
         });
  
-        // Filter technicians in child table to active employees only
         frm.set_query('technician', 'technicians', function() {
             return {
                 filters: {
@@ -21,39 +19,22 @@ frappe.ui.form.on("Trip Sheet", {
             };
         });
     },
- 
-    // ── On Form Refresh ──────────────────────────────────────
     refresh: function(frm) {
-        // Show "Start Trip" button when Draft
-        if (frm.doc.docstatus === 0 && frm.doc.trip_status === 'Draft') {
-            frm.add_custom_button(__('Start Trip'), function() {
-                frm.set_value('trip_status', 'In Progress');
-                frm.set_value('trip_start_time', frappe.datetime.now_datetime());
-                frm.save();
-            }, __('Actions'));
-        }
- 
-        // Show "End Trip" button when In Progress
-        if (frm.doc.docstatus === 0 && frm.doc.trip_status === 'In Progress') {
-            frm.add_custom_button(__('End Trip'), function() {
-                frm.set_value('trip_status', 'Completed');
-                frm.set_value('trip_finish_time', frappe.datetime.now_datetime());
-                frm.save();
-            }, __('Actions'));
-        }
- 
-        // Color the status indicator
-        if (frm.doc.trip_status === 'In Progress') {
-            frm.set_intro(__('Trip is currently in progress.'), 'blue');
-        } else if (frm.doc.trip_status === 'Completed') {
-            frm.set_intro(__('Trip has been completed.'), 'green');
-        }
- 
-        // Make calculated fields visually distinct
-        frm.fields_dict['total_trip_hours'].$wrapper.find('input').css('background-color', '#f0f4f8');
-        frm.fields_dict['total_distance'].$wrapper.find('input').css('background-color', '#f0f4f8');
-        frm.fields_dict['fuel_consumed'].$wrapper.find('input').css('background-color', '#f0f4f8');
-        frm.fields_dict['response_time_minutes'].$wrapper.find('input').css('background-color', '#f0f4f8');
+        if (frm.doc.docstatus === 0) {
+            frm.add_custom_button(__('Expense Claim'), function() {
+
+                frappe.db.get_value("Driver", frm.doc.driver, "employee")
+                .then(r => {
+
+                    frappe.new_doc("Expense Claim", {
+                        employee: r.message.employee,
+                        custom_trip_sheet: frm.doc.name
+                    });
+
+                });
+
+            });
+    }
     },
  
     // ── Trip Start / Finish Time ─────────────────────────────
