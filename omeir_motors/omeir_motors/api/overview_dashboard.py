@@ -132,26 +132,36 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         limit=200,
     )
 
-    emp_expense_records = frappe.db.get_list(
-        "Expense Claim",
-        filters=[["docstatus", "=", 1], ["status", "=", "Unpaid"]],
-        fields=["name", "employee_name", "posting_date", "total_claimed_amount"],
-        order_by="posting_date desc",
-        limit=50,
+    emp_expense_records = frappe.db.sql(
+        """SELECT
+               ec.name,
+               ec.employee_name,
+               ec.posting_date,
+               ec.total_claimed_amount,
+               ec.status
+           FROM `tabExpense Claim` ec
+           WHERE ec.docstatus = 1
+             AND ec.payable_account LIKE %s
+           ORDER BY ec.posting_date DESC
+           LIMIT 100""",
+        ('%Employee Expense Payable%',),
+        as_dict=True,
     )
-    emp_expense_payable = flt(sum(flt(r.total_claimed_amount) for r in emp_expense_records))
+    emp_expense_payable = flt(frappe.db.sql(
+        """SELECT IFNULL(SUM(total_claimed_amount), 0)
+           FROM `tabExpense Claim`
+           WHERE docstatus = 1
+             AND payable_account LIKE %s""",
+        ('%Employee Expense Payable%',)
+    )[0][0])
 
-    other_payable_accounts = frappe.db.sql(
-        """SELECT a.name, IFNULL(SUM(gl.credit - gl.debit), 0) AS balance
-           FROM `tabAccount` a
-           LEFT JOIN `tabGL Entry` gl ON gl.account = a.name AND gl.is_cancelled = 0
-           WHERE (a.account_name LIKE %s OR a.account_name LIKE %s)
-             AND a.is_group = 0
-             AND (a.company = %s OR %s IS NULL)
-           GROUP BY a.name""",
-        ('%Other Payable%', '%Accrued%', company, company), as_dict=True,
-    )
-    other_payable = flt(sum(flt(a.balance) for a in other_payable_accounts))
+    other_payable = flt(frappe.db.sql(
+        """SELECT IFNULL(SUM(gl.credit - gl.debit), 0)
+           FROM `tabGL Entry` gl
+           WHERE gl.account LIKE %s
+             AND gl.is_cancelled = 0""",
+        ('%Other Payable%',)
+    )[0][0])
 
     inv_type_raw = frappe.db.sql(
         """SELECT custom_invoice_type AS `type`,
@@ -263,7 +273,11 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         "overdue_receivables": overdue_receivables,
         "overdue_payables": overdue_payables,
         "emp_expense_payable": emp_expense_payable,
-        "emp_expense_count": len(emp_expense_records),
+        "emp_expense_count": int(frappe.db.sql(
+            """SELECT COUNT(*) FROM `tabExpense Claim`
+               WHERE docstatus = 1 AND payable_account LIKE %s""",
+            ('%Employee Expense Payable%',)
+        )[0][0]),
         "emp_expense_records": emp_expense_records,
         "other_payable": other_payable,
         "sales_by_inv_type": sales_by_inv_type,
