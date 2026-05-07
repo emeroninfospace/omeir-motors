@@ -1,0 +1,360 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-05-06 12:53:36.790589",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "vehicle",
+  "model",
+  "chassis_no",
+  "column_break_asme",
+  "posting_date",
+  "section_personnel",
+  "driver",
+  "driver_name",
+  "column_break_personnel",
+  "technicians",
+  "section_journey",
+  "trip_start_time",
+  "trip_finish_time",
+  "total_trip_hours",
+  "column_break_journey",
+  "location",
+  "destination_address",
+  "section_mileage",
+  "kms_out",
+  "kms_in",
+  "total_distance",
+  "column_break_fuel",
+  "fuel_out",
+  "fuel_in",
+  "fuel_consumed",
+  "section_breakdown",
+  "breakdown_vehicle_job_card",
+  "repair_request_time",
+  "location_reached_time",
+  "response_time_minutes",
+  "column_break_breakdown",
+  "breakdown_description",
+  "repair_summary",
+  "section_items",
+  "items_taken",
+  "section_sign_off",
+  "driver_remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_personnel",
+   "fieldtype": "Section Break",
+   "label": "Personnel Information"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Driver",
+   "options": "Driver",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "driver.full_name",
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Driver Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_personnel",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "technicians",
+   "fieldtype": "Table",
+   "label": "Technicians",
+   "options": "Trip Technician"
+  },
+  {
+   "fieldname": "section_journey",
+   "fieldtype": "Section Break",
+   "label": "Vehicle & Journey Overview"
+  },
+  {
+   "fieldname": "trip_start_time",
+   "fieldtype": "Datetime",
+   "label": "Trip Start Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trip_finish_time",
+   "fieldtype": "Datetime",
+   "label": "Trip Finish Time"
+  },
+  {
+   "fieldname": "total_trip_hours",
+   "fieldtype": "Float",
+   "label": "Total Trip Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_journey",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Breakdown Location / Site"
+  },
+  {
+   "fieldname": "destination_address",
+   "fieldtype": "Small Text",
+   "label": "Full Address / GPS Coordinates"
+  },
+  {
+   "fieldname": "section_mileage",
+   "fieldtype": "Section Break",
+   "label": "Mileage & Fuel Tracking"
+  },
+  {
+   "fieldname": "kms_out",
+   "fieldtype": "Float",
+   "label": "KMs Out (Odometer Start)",
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "kms_in",
+   "fieldtype": "Float",
+   "label": "KMs In (Odometer End)",
+   "precision": "1"
+  },
+  {
+   "fieldname": "total_distance",
+   "fieldtype": "Float",
+   "label": "Total Distance (KM)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fuel",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fuel_out",
+   "fieldtype": "Float",
+   "label": "Fuel Out (Litres)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "fuel_in",
+   "fieldtype": "Float",
+   "label": "Fuel In (Litres)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "fuel_consumed",
+   "fieldtype": "Float",
+   "label": "Fuel Consumed (Litres)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_breakdown",
+   "fieldtype": "Section Break",
+   "label": "Breakdown & Job Specifics"
+  },
+  {
+   "fieldname": "breakdown_vehicle_job_card",
+   "fieldtype": "Link",
+   "label": "Breakdown Vehicle Job Card",
+   "options": "Maintenance Visit",
+   "search_index": 1
+  },
+  {
+   "fieldname": "repair_request_time",
+   "fieldtype": "Datetime",
+   "label": "Repair Request Time"
+  },
+  {
+   "fieldname": "location_reached_time",
+   "fieldtype": "Datetime",
+   "label": "Location Reached Time"
+  },
+  {
+   "description": "Time from Repair Request to Location Reached",
+   "fieldname": "response_time_minutes",
+   "fieldtype": "Float",
+   "label": "Response Time (Minutes)",
+   "precision": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_breakdown",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "breakdown_description",
+   "fieldtype": "Small Text",
+   "label": "Breakdown Description"
+  },
+  {
+   "fieldname": "repair_summary",
+   "fieldtype": "Small Text",
+   "label": "Repair Summary / Actions Taken"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Items / Parts Taken"
+  },
+  {
+   "fieldname": "items_taken",
+   "fieldtype": "Table",
+   "label": "Items / Parts",
+   "options": "Trip Sheet Item"
+  },
+  {
+   "fieldname": "section_sign_off",
+   "fieldtype": "Section Break",
+   "label": "Sign Off & Remarks"
+  },
+  {
+   "fieldname": "driver_remarks",
+   "fieldtype": "Text",
+   "label": "Driver Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Trip Sheet",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "options": "Vehicle"
+  },
+  {
+   "fetch_from": "vehicle.custom_custom_model",
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "vehicle.chassis_no",
+   "fieldname": "chassis_no",
+   "fieldtype": "Data",
+   "label": "Chassis No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_asme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "TRIP-.YYYY.-.#####"
+  }
+ ],
+ "grid_page_length": 50,
+ "icon": "fa fa-truck",
+ "index_web_pages_for_search": 1,
+ "is_calendar_and_gantt": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-05-07 15:22:09.134605",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Trip Sheet",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fleet Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

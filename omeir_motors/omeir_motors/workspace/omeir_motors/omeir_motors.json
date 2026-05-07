@@ -139,7 +139,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Job Management",
-   "link_count": 5,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -193,6 +193,16 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trip Sheet",
+   "link_count": 0,
+   "link_to": "Trip Sheet",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
  "modified": "2026-05-07 15:00:50.899531",
@@ -207,6 +217,14 @@
  "roles": [],
  "sequence_id": 8.0,
  "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Trip Sheet",
+   "link_to": "Trip Sheet",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
   {
    "color": "Grey",
    "doc_view": "List",
