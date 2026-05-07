@@ -84,25 +84,30 @@ frappe.ui.form.on('Job Order', {
 
     if (frm.doc.docstatus === 1) {
 
-    frappe.db.get_list('Sales Invoice', {
-        filters: { custom_job_order: frm.doc.name },
-        fields: ['name', 'docstatus']
-    }).then((invoices) => {
+        frappe.db.get_list('Sales Invoice', {
+            filters: { custom_job_order: frm.doc.name },
+            fields: ['name', 'docstatus']
+        }).then((invoices) => {
 
-        let active_invoices = invoices.filter(inv => inv.docstatus !== 2);
+    let active_invoices = invoices.filter(inv => inv.docstatus !== 2);
 
-        frm.add_custom_button('Sales Invoice', () => {
+    frm.add_custom_button('Sales Invoice', () => {
 
-            if (active_invoices.length >= 2) {
+        // Re-fetch fresh data at click time to avoid stale results
+        frappe.db.get_list('Sales Invoice', {
+            filters: { custom_job_order: frm.doc.name },
+            fields: ['name', 'docstatus']
+        }).then((fresh_invoices) => {
+
+            let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
+
+            if (fresh_active.length >= 2) {
                 frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
                 return;
             }
 
-            let has_draft = active_invoices.some(inv => inv.docstatus === 0);
-            if (has_draft) {
-                frappe.throw(__('A Draft Sales Invoice already exists. Please submit or cancel it before creating another.'));
-                return;
-            }
+            // ✅ REMOVED the draft check — allows 2nd invoice even if 1st is draft
+            // Only block if both slots are already filled (handled above)
 
             frappe.call({
                 method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
@@ -117,9 +122,11 @@ frappe.ui.form.on('Job Order', {
                 }
             });
 
-        }, 'Create');
+        });
 
-    });
+    }, 'Create');
+
+});
 }
     if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {
 
