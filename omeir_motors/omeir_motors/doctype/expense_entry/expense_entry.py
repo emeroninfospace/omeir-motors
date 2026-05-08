@@ -106,3 +106,19 @@ class ExpenseEntry(Document):
         self.db_set("status", "Paid", update_modified=False)
 
         return je.name
+
+
+@frappe.whitelist()
+def make_payment_for_expense_entry(name):
+    doc = frappe.get_doc("Expense Entry", name)
+
+    if doc.docstatus != 1:
+        frappe.throw(_("Expense Entry {0} is not submitted.").format(name))
+
+    if doc.status == "Paid":
+        frappe.throw(_("Expense Entry {0} is already Paid.").format(name))
+
+    if doc.journal_entry:
+        frappe.throw(_("Expense Entry {0} already has a Journal Entry.").format(name))
+
+    return doc.make_journal_entry()
