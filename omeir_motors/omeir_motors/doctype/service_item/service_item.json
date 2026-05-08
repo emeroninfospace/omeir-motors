@@ -30,6 +30,7 @@
    "options": "Item"
   },
   {
+   "allow_on_submit": 1,
    "columns": 1,
    "fieldname": "quantity",
    "fieldtype": "Float",
@@ -37,6 +38,7 @@
    "label": "Quantity"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -61,6 +63,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "columns": 1,
    "fieldname": "description",
    "fieldtype": "Small Text",
@@ -68,22 +71,26 @@
    "label": "Description"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "start_time",
    "fieldtype": "Datetime",
    "label": "Start Time"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "end_time",
    "fieldtype": "Datetime",
    "label": "End Time"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_duration",
    "fieldtype": "Duration",
    "label": "Total Duration",
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "employee",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -91,18 +98,21 @@
    "options": "Employee"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "in_time",
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "In Time"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "out_time",
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Out Time"
   },
   {
+   "allow_on_submit": 1,
    "default": "0",
    "fieldname": "print",
    "fieldtype": "Check",
@@ -114,7 +124,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-29 12:14:40.486284",
+ "modified": "2026-05-08 11:31:38.444231",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Service Item",
