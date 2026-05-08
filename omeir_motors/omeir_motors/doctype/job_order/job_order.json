@@ -16,6 +16,7 @@
   "status",
   "warehouse",
   "total_duration",
+  "gate_pass_issued",
   "column_break_atxk",
   "expected_completion_date",
   "customer",
@@ -425,13 +426,19 @@
    "fieldtype": "Currency",
    "label": "Total Amount",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "gate_pass_issued",
+   "fieldtype": "Check",
+   "label": "Gate Pass Issued?"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-08 11:33:28.802523",
+ "modified": "2026-05-08 11:37:53.450975",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
