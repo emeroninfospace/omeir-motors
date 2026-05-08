@@ -194,9 +194,16 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
     } else {
         frm.page.set_indicator('Pending', 'orange');
     }
-    if (frm.doc.gate_pass_issued) {
-            frm.set_df_property('gate_pass_issued', 'read_only', 1);
+    if (frm.doc.docstatus == 1) {
+
+    if (!frm.doc.gate_pass_issued) {
+        frm.set_df_property('gate_pass_issued', 'read_only', 0);
     }
+
+    else {
+        frm.set_df_property('gate_pass_issued', 'read_only', 1);
+    }
+}
 },
 
     vehicle: function(frm) {
