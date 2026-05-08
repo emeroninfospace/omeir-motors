@@ -180,6 +180,7 @@
    "label": "Odometer Value (Last)"
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "customer.customer_primary_address",
    "fieldname": "customer_address",
    "fieldtype": "Link",
@@ -187,6 +188,7 @@
    "options": "Address"
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "customer.primary_address",
    "fieldname": "address",
    "fieldtype": "Text",
@@ -213,6 +215,7 @@
    "label": "Fuel Level"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -229,6 +232,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "customer.custom_type",
    "fieldname": "type",
    "fieldtype": "Select",

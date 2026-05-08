@@ -34,7 +34,7 @@
   "fuel_in",
   "fuel_consumed",
   "section_breakdown",
-  "breakdown_vehicle_job_card",
+  "job_orders",
   "repair_request_time",
   "location_reached_time",
   "response_time_minutes",
@@ -172,13 +172,6 @@
    "label": "Breakdown & Job Specifics"
   },
   {
-   "fieldname": "breakdown_vehicle_job_card",
-   "fieldtype": "Link",
-   "label": "Breakdown Vehicle Job Card",
-   "options": "Maintenance Visit",
-   "search_index": 1
-  },
-  {
    "fieldname": "repair_request_time",
    "fieldtype": "Datetime",
    "label": "Repair Request Time"
@@ -275,6 +268,12 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "TRIP-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "job_orders",
+   "fieldtype": "Table",
+   "label": "Job Orders",
+   "options": "Job Order Child Table"
   }
  ],
  "grid_page_length": 50,
@@ -283,7 +282,7 @@
  "is_calendar_and_gantt": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-07 15:22:09.134605",
+ "modified": "2026-05-08 10:38:42.168610",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Trip Sheet",
