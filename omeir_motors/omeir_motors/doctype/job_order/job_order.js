@@ -194,6 +194,9 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
     } else {
         frm.page.set_indicator('Pending', 'orange');
     }
+    if (frm.doc.gate_pass_issued) {
+            frm.set_df_property('gate_pass_issued', 'read_only', 1);
+    }
 },
 
     vehicle: function(frm) {
@@ -212,6 +215,19 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
 
     vehicle_out: function(frm) {
         validate_vehicle_time(frm, 'vehicle_out');
+    },
+    gate_pass_issued: function(frm) {
+        if (!frm.doc.gate_pass_issued) return;
+ 
+        frappe.confirm(
+            'Are you sure you want to issue the Gate Pass for <strong>' + frm.doc.name + '</strong>?<br><br>This action <strong>cannot be undone</strong>.',
+            function() {
+                frm.save();
+            },
+            function() {
+                frm.set_value('gate_pass_issued', 0);
+            }
+        );
     }
 });
 

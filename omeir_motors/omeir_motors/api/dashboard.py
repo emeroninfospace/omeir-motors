@@ -58,7 +58,69 @@ def get_workshop_dashboard_data():
             seen.add(t.employee)
             unique_technicians.append(t)
 
+    total_job_cards = frappe.db.sql("""
+        SELECT COUNT(*) FROM `tabJob Order`
+        WHERE docstatus = 1
+    """)[0][0]
+
+    pending_job_cards = frappe.db.sql("""
+        SELECT COUNT(*) FROM `tabJob Order`
+        WHERE docstatus = 1 AND status = 'Pending'
+    """)[0][0]
+
+    draft_job_cards = frappe.db.sql("""
+        SELECT COUNT(*) FROM `tabJob Order`
+        WHERE docstatus = 0
+    """)[0][0]
+
+    multi_invoice_jobs = frappe.db.sql("""
+        SELECT
+            jo.name,
+            jo.customer,
+            jo.make,
+            jo.model,
+            jo.status,
+            jo.expected_completion_date,
+            COUNT(sinv.name) AS invoice_count
+        FROM `tabJob Order` jo
+        INNER JOIN `tabSales Invoice` sinv
+            ON sinv.custom_job_order = jo.name
+            AND sinv.docstatus = 1
+        WHERE jo.docstatus = 1
+        GROUP BY jo.name
+        HAVING COUNT(sinv.name) > 1
+        ORDER BY invoice_count DESC
+    """, as_dict=True)
+
+    gate_pass_jobs = frappe.db.sql("""
+        SELECT
+            jo.name,
+            jo.customer,
+            jo.make,
+            jo.model,
+            jo.status,
+            jo.expected_completion_date,
+            jo.vehicle
+        FROM `tabJob Order` jo
+        WHERE jo.docstatus = 1
+          AND jo.gate_pass_issued = 1
+        ORDER BY jo.expected_completion_date DESC
+    """, as_dict=True)
+
+    completed_job_cards = frappe.db.sql("""
+        SELECT COUNT(*) FROM `tabJob Order`
+        WHERE docstatus = 1 AND status = 'Completed'
+    """)[0][0]
+
     return {
         "jobs": jobs,
         "technicians": unique_technicians,
+        "total_job_cards": total_job_cards,
+        "pending_job_cards": pending_job_cards,
+        "draft_job_cards": draft_job_cards,
+        "completed_job_cards": completed_job_cards,
+        "multi_invoice_jobs": multi_invoice_jobs,
+        "multi_invoice_count": len(multi_invoice_jobs),
+        "gate_pass_jobs": gate_pass_jobs,
+        "gate_pass_count": len(gate_pass_jobs),
     }
