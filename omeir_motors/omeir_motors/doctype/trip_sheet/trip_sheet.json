@@ -13,6 +13,7 @@
   "chassis_no",
   "column_break_asme",
   "posting_date",
+  "visited_location",
   "section_personnel",
   "driver",
   "driver_name",
@@ -109,9 +110,9 @@
   },
   {
    "fieldname": "location",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Breakdown Location / Site"
+   "fieldtype": "Table",
+   "label": "Breakdown Location / Site",
+   "options": "Site Location Table"
   },
   {
    "fieldname": "destination_address",
@@ -274,6 +275,11 @@
    "fieldtype": "Table",
    "label": "Job Orders",
    "options": "Job Order Child Table"
+  },
+  {
+   "fieldname": "visited_location",
+   "fieldtype": "Data",
+   "label": "Visited Location"
   }
  ],
  "grid_page_length": 50,
@@ -282,7 +288,7 @@
  "is_calendar_and_gantt": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-08 10:38:42.168610",
+ "modified": "2026-05-08 15:47:26.513966",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Trip Sheet",
