@@ -126,6 +126,36 @@ frappe.ui.form.on('Job Order', {
 
     }, 'Create');
 
+    if (frm.doc.docstatus === 1) {
+        frappe.db.get_list('Sales Invoice', {
+            filters: { custom_job_order: frm.doc.name, docstatus: 0 },
+            limit: 1
+        }).then((draft_invoices) => {
+            if (draft_invoices.length) {
+                frm.add_custom_button(__('Sync to Sales Invoice'), function() {
+                    frappe.confirm(
+                        __('This will overwrite all items in the linked draft Sales Invoice(s) with the current Job Order items. Continue?'),
+                        function() {
+                            frappe.call({
+                                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.sync_sales_invoice_items',
+                                args: { job_order: frm.doc.name },
+                                callback: function(r) {
+                                    if (r.message && r.message.length) {
+                                        frappe.msgprint({
+                                            title: __('Sync Complete'),
+                                            message: __('Sales Invoice(s) updated: ') + r.message.join(', '),
+                                            indicator: 'green'
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    );
+                }, __('Update'));
+            }
+        });
+    }
+
 });
 }
     if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {

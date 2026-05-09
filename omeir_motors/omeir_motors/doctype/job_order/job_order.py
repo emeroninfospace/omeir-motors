@@ -687,3 +687,132 @@ def make_subcontract(name):
     
     return subcontract
 
+@frappe.whitelist()
+def sync_sales_invoice_items(job_order):
+    job_doc = frappe.get_doc("Job Order", job_order)
+
+    invoices = frappe.get_all(
+        "Sales Invoice",
+        filters={"custom_job_order": job_order, "docstatus": 0},
+        fields=["name"]
+    )
+
+    if not invoices:
+        frappe.throw(_("No draft Sales Invoice found linked to this Job Order."))
+
+    cost_center = frappe.db.get_value("Company", job_doc.company, "cost_center")
+    synced = []
+
+    for inv in invoices:
+        sinv = frappe.get_doc("Sales Invoice", inv.name)
+        sinv.set("items", [])
+
+        item_list = []
+
+        for item in job_doc.get("job_order_items") or []:
+            item_list.append({
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "qty": item.quantity,
+                "rate": item.rate,
+                "amount": flt(item.quantity) * flt(item.rate),
+            })
+
+        for item in job_doc.get("service_item") or []:
+            item_list.append({
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "qty": item.quantity,
+                "rate": item.rate,
+                "amount": flt(item.quantity) * flt(item.rate),
+            })
+
+        for item in job_doc.get("sublet_details") or []:
+            item_list.append({
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "uom": item.uom,
+                "qty": item.quantity,
+                "rate": item.margin_amount,
+                "amount": flt(item.quantity) * flt(item.margin_amount),
+            })
+
+        for item_data in item_list:
+            item_code = item_data.get("item_code")
+            if not item_code:
+                continue
+
+            income_account = frappe.db.get_value(
+                "Item Default",
+                {"parent": item_code, "company": job_doc.company},
+                "income_account"
+            ) or frappe.db.get_value("Company", job_doc.company, "default_income_account")
+
+            if not item_data.get("item_name"):
+                item_details = frappe.db.get_value(
+                    "Item", item_code, ["item_name", "stock_uom"], as_dict=1
+                )
+                if item_details:
+                    item_data["item_name"] = item_details.item_name
+                    item_data["uom"] = item_data.get("uom") or item_details.stock_uom
+
+            sinv.append("items", {
+                "item_code": item_code,
+                "item_name": item_data.get("item_name"),
+                "description": item_data.get("description"),
+                "uom": item_data.get("uom"),
+                "stock_uom": item_data.get("uom"),
+                "conversion_factor": 1,
+                "qty": item_data.get("qty", 0),
+                "price_list_rate": item_data.get("rate", 0),
+                "rate": item_data.get("rate", 0),
+                "amount": item_data.get("amount", 0),
+                "income_account": income_account,
+                "warehouse": job_doc.warehouse,
+                "cost_center": cost_center
+            })
+
+        sinv.save(ignore_permissions=True)
+        synced.append(sinv.name)
+
+    return synced
+
+
+@frappe.whitelist()
+def validate_invoice_items_match(job_order, sales_invoice):
+    job_doc = frappe.get_doc("Job Order", job_order)
+    sinv_doc = frappe.get_doc("Sales Invoice", sales_invoice)
+
+    jo_items = {}
+    for item in job_doc.get("job_order_items") or []:
+        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
+    for item in job_doc.get("service_item") or []:
+        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
+    for item in job_doc.get("sublet_details") or []:
+        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
+
+    sinv_items = {}
+    for item in sinv_doc.items:
+        sinv_items[item.item_code] = sinv_items.get(item.item_code, 0) + flt(item.qty)
+
+    mismatches = []
+
+    for item_code, jo_qty in jo_items.items():
+        sinv_qty = sinv_items.get(item_code, 0)
+        if flt(sinv_qty, 3) != flt(jo_qty, 3):
+            mismatches.append(
+                f"{item_code}: Job Order qty = {jo_qty}, Invoice qty = {sinv_qty}"
+            )
+
+    for item_code in sinv_items:
+        if item_code not in jo_items:
+            mismatches.append(
+                f"{item_code}: present in Invoice but NOT in Job Order"
+            )
+
+    return {"mismatches": mismatches}
