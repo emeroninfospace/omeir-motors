@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from erpnext.accounts.general_ledger import make_gl_entries
-from frappe.utils import getdate
+from frappe.utils import getdate, flt
 
 
 class SubcontractInvoice(Document):
@@ -97,12 +97,12 @@ class SubcontractInvoice(Document):
 
         for tax in self.purchase_taxes_and_charges:
             if tax.charge_type == "On Net Total":
-                tax.tax_amount = (self.total_amount * (tax.rate or 0)) / 100
+                tax.tax_amount = flt((self.total_amount * (tax.rate or 0)) / 100, 2)
 
             if tax.add_deduct_tax == "Add":
-                added += tax.tax_amount or 0
+                added += flt(tax.tax_amount or 0, 2)
             elif tax.add_deduct_tax == "Deduct":
-                deducted += tax.tax_amount or 0
+                deducted += flt(tax.tax_amount or 0, 2)
 
         self.taxes_and_charges_added = added
         self.taxes_and_charges_deducted = deducted

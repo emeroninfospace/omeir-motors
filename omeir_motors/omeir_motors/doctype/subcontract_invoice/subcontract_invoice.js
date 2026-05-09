@@ -4,8 +4,10 @@ frappe.ui.form.on("Subcontract Invoice", {
             frm.add_custom_button("Accounting Ledger", () => {
                 frappe.route_options = {
                     voucher_no: frm.doc.name,
-                    voucher_type: frm.doc.doctype,
-                    company: frm.doc.company
+                    from_date: frm.doc.transaction_date,
+                    to_date: frappe.datetime.get_today(),
+                    company: frm.doc.company,
+                    categorize_by: "Categorize by Voucher (Consolidated)"
                 };
                 frappe.set_route("query-report", "General Ledger");
             }, "View");
