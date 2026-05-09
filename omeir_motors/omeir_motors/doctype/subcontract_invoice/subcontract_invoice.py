@@ -92,6 +92,8 @@ class SubcontractInvoice(Document):
 
 
     def calculate_taxes(self):
+        from frappe.utils import flt
+
         added = 0
         deducted = 0
 
@@ -104,11 +106,10 @@ class SubcontractInvoice(Document):
             elif tax.add_deduct_tax == "Deduct":
                 deducted += flt(tax.tax_amount or 0, 2)
 
-        self.taxes_and_charges_added = added
-        self.taxes_and_charges_deducted = deducted
-        self.total_taxes_and_charges = added - deducted
-
-        self.grand_total = (self.total_amount or 0) + self.total_taxes_and_charges
+        self.taxes_and_charges_added = flt(added, 2)
+        self.taxes_and_charges_deducted = flt(deducted, 2)
+        self.total_taxes_and_charges = flt(added - deducted, 2)
+        self.grand_total = flt((self.total_amount or 0) + self.total_taxes_and_charges, 2)
 
 
 @frappe.whitelist()
