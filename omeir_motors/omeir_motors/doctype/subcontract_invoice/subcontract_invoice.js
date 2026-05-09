@@ -1,5 +1,16 @@
 frappe.ui.form.on("Subcontract Invoice", {
     refresh(frm) {
+        const status_colors = {
+            "Paid": "green",
+            "Partially Paid": "orange",
+            "Unpaid": "red",
+            "Draft": "gray",
+            "Cancelled": "red"
+        };
+        if (frm.doc.status && status_colors[frm.doc.status]) {
+            frm.page.set_indicator(frm.doc.status, status_colors[frm.doc.status]);
+        }
+
         if (frm.doc.docstatus === 1) {
             frm.add_custom_button("Accounting Ledger", () => {
                 frappe.route_options = {
@@ -12,7 +23,7 @@ frappe.ui.form.on("Subcontract Invoice", {
                 frappe.set_route("query-report", "General Ledger");
             }, "View");
         }
-        // calculate_taxes(frm);
+
         make_payment(frm);
     },
 
@@ -106,8 +117,6 @@ function calculate_invoice_totals(frm) {
     calculate_taxes(frm);
 }
 
-
-
 function calculate_taxes(frm) {
     let net_total = frm.doc.total_amount || 0;
     let running_total = net_total;
@@ -159,77 +168,81 @@ function calculate_taxes(frm) {
     frm.set_value("grand_total", running_total);
 }
 
-
 function make_payment(frm) {
-    if (frm.doc.docstatus === 1) {
+    if (frm.doc.docstatus !== 1) return;
+    if (frm.doc.status === "Paid") return;
 
-            frm.add_custom_button("Make Payment", () => {
+    frm.add_custom_button("Make Payment", () => {
 
-                let outstanding = (frm.doc.grand_total || 0) - (frm.doc.paid_amount || 0);
+        let outstanding = (frm.doc.grand_total || 0) - (frm.doc.paid_amount || 0);
 
-                if (outstanding <= 0) {
-                    frappe.msgprint("Invoice already fully paid");
+        if (outstanding <= 0) {
+            frappe.msgprint("Invoice already fully paid");
+            return;
+        }
+
+        let d = new frappe.ui.Dialog({
+            title: "Make Payment",
+            fields: [
+                {
+                    label: "Mode of Payment",
+                    fieldname: "mode_of_payment",
+                    fieldtype: "Link",
+                    options: "Mode of Payment",
+                    reqd: 1
+                },
+                {
+                    label: "Grand Total",
+                    fieldname: "grand_total",
+                    fieldtype: "Currency",
+                    read_only: 1,
+                    default: frm.doc.grand_total
+                },
+                {
+                    label: "Outstanding Amount",
+                    fieldname: "outstanding",
+                    fieldtype: "Currency",
+                    read_only: 1,
+                    default: outstanding
+                },
+                {
+                    label: "Amount",
+                    fieldname: "amount",
+                    fieldtype: "Currency",
+                    reqd: 1,
+                    default: outstanding
+                }
+            ],
+            primary_action_label: "Create Payment",
+            primary_action(values) {
+
+                if (values.amount > outstanding) {
+                    frappe.msgprint("Amount cannot exceed outstanding amount");
                     return;
                 }
 
-                let d = new frappe.ui.Dialog({
-                    title: "Make Payment",
-                    fields: [
-                        {
-                            label: "Mode of Payment",
-                            fieldname: "mode_of_payment",
-                            fieldtype: "Link",
-                            options: "Mode of Payment",
-                            reqd: 1
-                        },
-                        {
-                            label: "Grand Total",
-                            fieldname: "grand_total",
-                            fieldtype: "Currency",
-                            read_only: 1,
-                            default: frm.doc.grand_total
-                        },
-                        {
-                            label: "Outstanding Amount",
-                            fieldname: "outstanding",
-                            fieldtype: "Currency",
-                            read_only: 1,
-                            default: outstanding
-                        },
-                        {
-                            label: "Amount",
-                            fieldname: "amount",
-                            fieldtype: "Currency",
-                            reqd: 1
+                frappe.call({
+                    method: "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.make_payment_entry",
+                    args: {
+                        invoice: frm.doc.name,
+                        mode_of_payment: values.mode_of_payment,
+                        amount: values.amount
+                    },
+                    callback(r) {
+                        if (r.message) {
+                            d.hide();
+                            frappe.msgprint({
+                                title: __("Payment Created"),
+                                message: __("Journal Entry {0} created successfully.", [r.message]),
+                                indicator: "green"
+                            });
+                            frm.reload_doc();
                         }
-                    ],
-                    primary_action_label: "Create Payment",
-                    primary_action(values) {
-
-                        if (values.amount > outstanding) {
-                            frappe.msgprint("Amount cannot exceed outstanding amount");
-                            return;
-                        }
-
-                        frappe.call({
-                            method: "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.make_payment_entry",
-                            args: {
-                                invoice: frm.doc.name,
-                                mode_of_payment: values.mode_of_payment,
-                                amount: values.amount
-                            },
-                            callback(r) {
-                                if (r.message) {
-                                    frappe.set_route("Form", "Journal Entry", r.message);
-                                }
-                            }
-                        });
-
-                        d.hide();
                     }
                 });
+            }
+        });
 
-                d.show();
-            });
-        }
+        d.show();
+    });
 }
