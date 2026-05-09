@@ -1,6 +1,3 @@
-# Copyright (c) 2026, Emeron Infospace and contributors
-# For license information, please see license.txt
-
 import frappe
 from frappe.model.document import Document
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -10,17 +7,31 @@ from frappe.utils import getdate, flt
 class SubcontractInvoice(Document):
     def validate(self):
         self.calculate_totals()
-        self.calculate_taxes()   
+        self.calculate_taxes()
 
     def on_submit(self):
         self.make_gl_entries()
+        self.db_set("status", "Unpaid", update_modified=False)
 
     def on_cancel(self):
         from erpnext.accounts.general_ledger import make_reverse_gl_entries
         make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
+        self.db_set("status", "Cancelled", update_modified=False)
+
+    def update_payment_status(self):
+        paid = flt(self.paid_amount, 2)
+        grand = flt(self.grand_total, 2)
+
+        if paid <= 0:
+            status = "Unpaid"
+        elif paid >= grand:
+            status = "Paid"
+        else:
+            status = "Partially Paid"
+
+        self.db_set("status", status, update_modified=False)
 
     def make_gl_entries(self):
-
         company = frappe.get_doc("Company", self.company)
 
         payable_account = company.default_payable_account
@@ -80,7 +91,7 @@ class SubcontractInvoice(Document):
         }))
 
         make_gl_entries(gl_entries)
-    
+
     def calculate_totals(self):
         self.total_quantity = 0
         self.total_amount = 0
@@ -90,10 +101,7 @@ class SubcontractInvoice(Document):
             self.total_quantity += item.quantity or 0
             self.total_amount += item.amount or 0
 
-
     def calculate_taxes(self):
-        from frappe.utils import flt
-
         added = 0
         deducted = 0
 
@@ -134,10 +142,10 @@ def make_payment_entry(invoice, mode_of_payment, amount):
 
     amount = frappe.utils.flt(amount, 2)
 
-    paid_amount = frappe.utils.flt(invoice_doc.paid_amount or 0)
-    grand_total = frappe.utils.flt(invoice_doc.grand_total)
+    paid_amount = frappe.utils.flt(invoice_doc.paid_amount or 0, 2)
+    grand_total = frappe.utils.flt(invoice_doc.grand_total, 2)
 
-    outstanding = grand_total - paid_amount
+    outstanding = flt(grand_total - paid_amount, 2)
 
     if outstanding <= 0:
         frappe.throw("Invoice already fully paid")
@@ -149,9 +157,8 @@ def make_payment_entry(invoice, mode_of_payment, amount):
     je.voucher_type = "Journal Entry"
     je.company = company
     je.posting_date = frappe.utils.nowdate()
-
     je.cheque_no = invoice_doc.name
-    je.cheque_date = invoice_doc.creation
+    je.cheque_date = invoice_doc.transaction_date
 
     je.append("accounts", {
         "account": default_account,
@@ -172,11 +179,12 @@ def make_payment_entry(invoice, mode_of_payment, amount):
     je.insert(ignore_permissions=True)
     je.submit()
 
-    paid_amount += amount
-    outstanding = grand_total - paid_amount
+    paid_amount = flt(paid_amount + amount, 2)
 
     frappe.db.set_value("Subcontract Invoice", invoice, "paid_amount", paid_amount)
-    
+
+    invoice_doc.reload()
+    invoice_doc.update_payment_status()
 
     if paid_amount >= grand_total:
         if invoice_doc.subcontract_work_order:
