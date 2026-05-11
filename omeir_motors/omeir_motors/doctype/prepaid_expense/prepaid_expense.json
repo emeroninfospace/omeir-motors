@@ -1,0 +1,174 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "PE-.YYYY.-.#####",
+ "creation": "2026-05-11 12:06:34.338473",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "prepaid_expense_section",
+  "employee",
+  "employee_name",
+  "expense_claim",
+  "expense_type",
+  "total_amount",
+  "company",
+  "status",
+  "column_break_niye",
+  "start_date",
+  "number_of_months",
+  "monthly_amount",
+  "prepaid_account",
+  "expense_account",
+  "payable_account",
+  "remaining_amount",
+  "section_break_amxf",
+  "prepaid_expense_schedule",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "prepaid_expense_section",
+   "fieldtype": "Section Break",
+   "label": "Prepaid Expense"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "expense_claim",
+   "fieldtype": "Link",
+   "label": "Expense Claim",
+   "options": "Expense Claim"
+  },
+  {
+   "fieldname": "expense_type",
+   "fieldtype": "Data",
+   "label": "Expense Type"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nDraft\nActive\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remaining_amount",
+   "fieldtype": "Currency",
+   "label": "Remaining Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_niye",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "number_of_months",
+   "fieldtype": "Int",
+   "label": "Number of Months"
+  },
+  {
+   "fieldname": "monthly_amount",
+   "fieldtype": "Currency",
+   "label": "Monthly Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "prepaid_account",
+   "fieldtype": "Link",
+   "label": "Prepaid Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "expense_account",
+   "fieldtype": "Link",
+   "label": "Expense Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "payable_account",
+   "fieldtype": "Link",
+   "label": "Payable Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_break_amxf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "prepaid_expense_schedule",
+   "fieldtype": "Table",
+   "label": "Prepaid Expense Schedule",
+   "options": "Prepaid Expense Schedule",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Prepaid Expense",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-05-11 14:04:25.456792",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Prepaid Expense",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
