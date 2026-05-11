@@ -19,7 +19,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-11 10:37:28.253208",
+ "modified": "2026-05-11 12:30:41.607453",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Site Location",
@@ -67,5 +67,7 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }
