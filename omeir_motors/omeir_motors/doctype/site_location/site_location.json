@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:location",
- "creation": "2026-05-08 16:26:32.992263",
+ "creation": "2026-05-11 10:36:33.355763",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -12,7 +12,6 @@
   {
    "fieldname": "location",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Location",
    "unique": 1
   }
@@ -20,7 +19,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-08 16:27:23.675509",
+ "modified": "2026-05-11 10:37:28.253208",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Site Location",
@@ -47,7 +46,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Sales Manager",
+   "role": "Sales User",
    "share": 1,
    "write": 1
   },
@@ -59,7 +58,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Purchase Manager",
+   "role": "Purchase User",
    "share": 1,
    "write": 1
   }
