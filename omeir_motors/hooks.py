@@ -150,7 +150,11 @@ override_doctype_class = {
 
 # Scheduled Tasks
 # ---------------
-
+# scheduler_events = {
+#     "monthly": [
+#         "omeir_motors.omeir_motors.doctype.prepaid_expense.prepaid_expense.post_monthly_amortization"
+#     ]
+# }
 # scheduler_events = {
 # 	"all": [
 # 		"omeir_motors.tasks.all"
