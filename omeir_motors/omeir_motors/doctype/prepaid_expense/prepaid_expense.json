@@ -7,13 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "prepaid_expense_section",
+  "type",
   "employee",
   "employee_name",
-  "expense_claim",
   "expense_type",
   "total_amount",
   "company",
   "status",
+  "initial_journal_entry",
   "column_break_niye",
   "start_date",
   "number_of_months",
@@ -22,6 +23,7 @@
   "expense_account",
   "payable_account",
   "remaining_amount",
+  "close_journal_entry",
   "section_break_amxf",
   "prepaid_expense_schedule",
   "amended_from"
@@ -33,21 +35,16 @@
    "label": "Prepaid Expense"
   },
   {
+   "depends_on": "eval:doc.type==\"Expense\"",
    "fieldname": "employee",
    "fieldtype": "Link",
    "label": "Employee",
    "options": "Employee"
   },
   {
-   "fieldname": "expense_claim",
-   "fieldtype": "Link",
-   "label": "Expense Claim",
-   "options": "Expense Claim"
-  },
-  {
    "fieldname": "expense_type",
    "fieldtype": "Data",
-   "label": "Expense Type"
+   "label": "Description"
   },
   {
    "fieldname": "total_amount",
@@ -81,12 +78,16 @@
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "Start Date"
+   "in_list_view": 1,
+   "label": "Start Date",
+   "reqd": 1
   },
   {
    "fieldname": "number_of_months",
    "fieldtype": "Int",
-   "label": "Number of Months"
+   "in_list_view": 1,
+   "label": "Number of Months",
+   "reqd": 1
   },
   {
    "fieldname": "monthly_amount",
@@ -140,13 +141,35 @@
    "fieldtype": "Data",
    "label": "Employee Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "\nExpense\nRent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "close_journal_entry",
+   "fieldtype": "Link",
+   "label": "Close Journal Entry",
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "initial_journal_entry",
+   "fieldtype": "Link",
+   "label": "Initial Journal Entry",
+   "options": "Journal Entry",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-11 14:04:25.456792",
+ "modified": "2026-05-12 11:31:01.864366",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Prepaid Expense",

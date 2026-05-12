@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, getdate, add_months, get_first_day
+from frappe.utils import flt, getdate, add_months
 
 
 class PrepaidExpense(Document):
@@ -12,6 +12,10 @@ class PrepaidExpense(Document):
         self.calculate_monthly_amount()
 
     def validate_fields(self):
+        if not self.type:
+            frappe.throw("Please select Type (Expense or Rent)")
+        if self.type == "Expense" and not self.employee:
+            frappe.throw("Employee is required for Expense type")
         if not self.prepaid_account:
             frappe.throw("Please select Prepaid Account")
         if not self.expense_account:
@@ -32,7 +36,8 @@ class PrepaidExpense(Document):
 
     def on_submit(self):
         self.create_amortization_schedule()
-        self.make_initial_gl_entry()
+        if self.type == "Expense":
+            self.make_initial_gl_entry()
         self.db_set("status", "Active", update_modified=False)
 
     def on_cancel(self):
@@ -46,7 +51,7 @@ class PrepaidExpense(Document):
         start = getdate(self.start_date)
 
         for i in range(self.number_of_months):
-            schedule_date = get_first_day(add_months(start, i))
+            schedule_date = add_months(start, i)
 
             if i == self.number_of_months - 1:
                 amount = flt(self.total_amount - total_allocated, 2)
@@ -65,64 +70,55 @@ class PrepaidExpense(Document):
         self.save()
 
     def make_initial_gl_entry(self):
-        from erpnext.accounts.general_ledger import make_gl_entries
-
         cost_center = frappe.db.get_value("Company", self.company, "cost_center")
-        employee_name = frappe.db.get_value("Employee", self.employee, "employee_name") or self.employee
         posting_date = getdate(self.start_date)
-        remarks = f"Prepaid expense for {self.expense_type or ''} - {employee_name}"
-
         payable_account_type = frappe.db.get_value("Account", self.payable_account, "account_type")
-        prepaid_account_type = frappe.db.get_value("Account", self.prepaid_account, "account_type")
 
-        gl_entries = []
+        if self.type == "Expense":
+            party_label = frappe.db.get_value("Employee", self.employee, "employee_name") or self.employee
+        else:
+            party_label = self.expense_type or "Rent"
 
-        debit_entry = frappe._dict({
-            "account": self.prepaid_account,
-            "debit": flt(self.total_amount, 2),
+        je = frappe.new_doc("Journal Entry")
+        je.voucher_type = "Journal Entry"
+        je.company = self.company
+        je.posting_date = posting_date
+        je.cheque_no = self.name
+        je.cheque_date = posting_date
+        je.remark = f"Prepaid {self.type} initial entry - {party_label}"
+
+        debit_entry = {
+            "account": self.payable_account,
             "debit_in_account_currency": flt(self.total_amount, 2),
-            "against": self.payable_account,
-            "voucher_type": self.doctype,
-            "voucher_no": self.name,
-            "company": self.company,
-            "posting_date": posting_date,
             "cost_center": cost_center,
-            "remarks": remarks
-        })
+            "user_remark": f"Prepaid {self.type} - {party_label}"
+        }
 
-        if prepaid_account_type in ("Receivable", "Payable"):
+        if payable_account_type in ("Receivable", "Payable") and self.type == "Expense" and self.employee:
             debit_entry.update({
                 "party_type": "Employee",
                 "party": self.employee
             })
 
-        gl_entries.append(debit_entry)
+        je.append("accounts", debit_entry)
 
-        credit_entry = frappe._dict({
-            "account": self.payable_account,
-            "credit": flt(self.total_amount, 2),
+        je.append("accounts", {
+            "account": self.prepaid_account,
             "credit_in_account_currency": flt(self.total_amount, 2),
-            "against": self.prepaid_account,
-            "voucher_type": self.doctype,
-            "voucher_no": self.name,
-            "company": self.company,
-            "posting_date": posting_date,
             "cost_center": cost_center,
-            "remarks": remarks
+            "user_remark": f"Prepaid {self.type} - {party_label}"
         })
 
-        if payable_account_type in ("Receivable", "Payable"):
-            credit_entry.update({
-                "party_type": "Employee",
-                "party": self.employee
-            })
+        je.insert(ignore_permissions=True)
+        je.submit()
 
-        gl_entries.append(credit_entry)
-        make_gl_entries(gl_entries)
+        self.db_set("initial_journal_entry", je.name, update_modified=False)
 
     def cancel_pending_entries(self):
-        from erpnext.accounts.general_ledger import make_reverse_gl_entries
-        make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
+        if self.type == "Expense" and self.initial_journal_entry:
+            je = frappe.get_doc("Journal Entry", self.initial_journal_entry)
+            if je.docstatus == 1:
+                je.cancel()
 
         for row in self.prepaid_expense_schedule:
             if row.status == "Pending":
@@ -145,7 +141,13 @@ def close_prepaid_expense(name):
         frappe.throw("No remaining amount to close")
 
     cost_center = frappe.db.get_value("Company", doc.company, "cost_center")
-    employee_name = frappe.db.get_value("Employee", doc.employee, "employee_name") or doc.employee
+
+    if doc.type == "Expense":
+        party_label = frappe.db.get_value("Employee", doc.employee, "employee_name") or doc.employee
+    else:
+        party_label = doc.expense_type or "Rent"
+
+    payable_account_type = frappe.db.get_value("Account", doc.payable_account, "account_type")
 
     je = frappe.new_doc("Journal Entry")
     je.voucher_type = "Journal Entry"
@@ -153,33 +155,29 @@ def close_prepaid_expense(name):
     je.posting_date = frappe.utils.today()
     je.cheque_no = doc.name
     je.cheque_date = frappe.utils.today()
-    je.remark = f"Closing prepaid expense for {doc.expense_type or ''} - {employee_name}"
+    je.remark = f"Closing prepaid {doc.type} - {party_label}"
 
-    prepaid_account_type = frappe.db.get_value("Account", doc.prepaid_account, "account_type")
-
-    debit_entry = {
+    je.append("accounts", {
         "account": doc.expense_account,
         "debit_in_account_currency": remaining,
         "cost_center": cost_center,
-        "user_remark": f"Write-off remaining prepaid: {doc.expense_type or ''} - {employee_name}"
-    }
-    je.append("accounts", debit_entry)
+        "user_remark": f"Write-off remaining: {doc.expense_type or ''} - {party_label}"
+    })
 
     credit_entry = {
-        "account": doc.prepaid_account,
+        "account": doc.payable_account,
         "credit_in_account_currency": remaining,
         "cost_center": cost_center,
-        "user_remark": f"Write-off remaining prepaid: {doc.expense_type or ''} - {employee_name}"
+        "user_remark": f"Write-off remaining: {doc.expense_type or ''} - {party_label}"
     }
 
-    if prepaid_account_type in ("Receivable", "Payable"):
+    if payable_account_type in ("Receivable", "Payable") and doc.type == "Expense" and doc.employee:
         credit_entry.update({
             "party_type": "Employee",
             "party": doc.employee
         })
 
     je.append("accounts", credit_entry)
-
     je.insert(ignore_permissions=True)
     je.submit()
 
@@ -189,14 +187,15 @@ def close_prepaid_expense(name):
 
     frappe.db.set_value("Prepaid Expense", name, {
         "remaining_amount": 0,
-        "status": "Completed"
+        "status": "Completed",
+        "close_journal_entry": je.name
     })
 
     return je.name
 
 
 @frappe.whitelist()
-def post_monthly_amortization():
+def post_scheduled_amortization():
     today = getdate(frappe.utils.today())
 
     pending_rows = frappe.db.sql("""
@@ -206,9 +205,11 @@ def post_monthly_amortization():
             pes.amount,
             pe.name as parent,
             pe.employee,
+            pe.type,
             pe.expense_type,
             pe.prepaid_account,
             pe.expense_account,
+            pe.payable_account,
             pe.company
         FROM `tabPrepaid Expense Schedule` pes
         JOIN `tabPrepaid Expense` pe ON pe.name = pes.parent
@@ -223,9 +224,13 @@ def post_monthly_amortization():
 
     for row in pending_rows:
         try:
-            employee_name = frappe.db.get_value("Employee", row.employee, "employee_name") or row.employee
             cost_center = frappe.db.get_value("Company", row.company, "cost_center")
-            prepaid_account_type = frappe.db.get_value("Account", row.prepaid_account, "account_type")
+            payable_account_type = frappe.db.get_value("Account", row.payable_account, "account_type")
+
+            if row.type == "Expense" and row.employee:
+                party_label = frappe.db.get_value("Employee", row.employee, "employee_name") or row.employee
+            else:
+                party_label = row.expense_type or "Rent"
 
             je = frappe.new_doc("Journal Entry")
             je.voucher_type = "Journal Entry"
@@ -233,30 +238,36 @@ def post_monthly_amortization():
             je.posting_date = row.schedule_date
             je.cheque_no = row.parent
             je.cheque_date = row.schedule_date
-            je.remark = f"Monthly amortization for {row.expense_type or ''} - {employee_name}"
+            je.remark = f"Monthly amortization for {row.expense_type or ''} - {party_label}"
 
             je.append("accounts", {
                 "account": row.expense_account,
                 "debit_in_account_currency": flt(row.amount, 2),
                 "cost_center": cost_center,
-                "user_remark": f"{row.expense_type or ''} - {employee_name}"
+                "user_remark": f"{row.expense_type or ''} - {party_label}"
             })
 
-            credit_entry = {
-                "account": row.prepaid_account,
-                "credit_in_account_currency": flt(row.amount, 2),
-                "cost_center": cost_center,
-                "user_remark": f"{row.expense_type or ''} - {employee_name}"
-            }
-
-            if prepaid_account_type in ("Receivable", "Payable"):
-                credit_entry.update({
-                    "party_type": "Employee",
-                    "party": row.employee
-                })
+            if row.type == "Rent":
+                credit_entry = {
+                    "account": row.prepaid_account,
+                    "credit_in_account_currency": flt(row.amount, 2),
+                    "cost_center": cost_center,
+                    "user_remark": f"{row.expense_type or ''} - {party_label}"
+                }
+            else:
+                credit_entry = {
+                    "account": row.payable_account,
+                    "credit_in_account_currency": flt(row.amount, 2),
+                    "cost_center": cost_center,
+                    "user_remark": f"{row.expense_type or ''} - {party_label}"
+                }
+                if payable_account_type in ("Receivable", "Payable") and row.employee:
+                    credit_entry.update({
+                        "party_type": "Employee",
+                        "party": row.employee
+                    })
 
             je.append("accounts", credit_entry)
-
             je.insert(ignore_permissions=True)
             je.submit()
 
