@@ -12,11 +12,13 @@ frappe.ui.form.on("Prepaid Expense", {
             frm.page.set_indicator(frm.doc.status, status_colors[frm.doc.status]);
         }
 
+        toggle_employee_fields(frm);
+
         if (frm.doc.docstatus === 1 && frm.doc.status === "Active") {
             frm.add_custom_button(__("Close Prepaid Expense"), function() {
                 frappe.confirm(
                     __("Are you sure you want to close this Prepaid Expense? The remaining amount of <strong>{0}</strong> will be written off to the Expense Account immediately. This action cannot be undone.", [
-                        format_currency(frm.doc.remaining_amount, frm.doc.currency)
+                        format_currency(frm.doc.remaining_amount)
                     ]),
                     function() {
                         frappe.call({
@@ -47,23 +49,29 @@ frappe.ui.form.on("Prepaid Expense", {
         });
 
         frm.set_query("payable_account", function() {
+            if (frm.doc.type === "Rent") {
+                return {
+                    filters: {
+                        company: frm.doc.company,
+                        is_group: 0,
+                        account_type: ["not in", ["Receivable", "Payable"]]
+                    }
+                };
+            }
             return { filters: { company: frm.doc.company, is_group: 0 } };
+        });
+
+        frm.set_query("employee", function() {
+            return { filters: { status: "Active" } };
         });
     },
 
-    expense_claim: function(frm) {
-        if (!frm.doc.expense_claim) return;
-
-        frappe.db.get_value("Expense Claim", frm.doc.expense_claim,
-            ["employee", "employee_name", "grand_total", "company"],
-            function(r) {
-                if (r) {
-                    frm.set_value("employee", r.employee);
-                    frm.set_value("total_amount", r.grand_total);
-                    frm.set_value("company", r.company);
-                }
-            }
-        );
+    type: function(frm) {
+        toggle_employee_fields(frm);
+        frm.set_value("employee", null);
+        frm.set_value("employee_name", null);
+        frm.set_value("payable_account", null);
+        frm.refresh_field("payable_account");
     },
 
     total_amount: function(frm) {
@@ -74,6 +82,18 @@ frappe.ui.form.on("Prepaid Expense", {
         calculate_monthly(frm);
     }
 });
+
+function toggle_employee_fields(frm) {
+    let is_expense = frm.doc.type === "Expense";
+    let is_rent = frm.doc.type === "Rent";
+
+    frm.set_df_property("employee", "hidden", !is_expense);
+    frm.set_df_property("employee_name", "hidden", !is_expense);
+    frm.set_df_property("employee", "reqd", is_expense);
+
+    frm.set_df_property("payable_account", "hidden", is_rent);
+    frm.set_df_property("payable_account", "reqd", is_expense);
+}
 
 function calculate_monthly(frm) {
     if (frm.doc.total_amount && frm.doc.number_of_months && frm.doc.number_of_months > 0) {
