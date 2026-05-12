@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "PV-.YY.-.####.",
+ "creation": "2026-05-12 15:12:00.739720",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "voucher_no",
+  "date",
+  "amount",
+  "payment_method",
+  "paid_to",
+  "on_date",
+  "verified_by",
+  "column_break_wqlh",
+  "sum_of",
+  "on_settlement_of",
+  "paid_by",
+  "received_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "voucher_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Voucher No"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Payment Method",
+   "options": "\nCash\nA/C Transfer\nCheque"
+  },
+  {
+   "fieldname": "paid_to",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Paid To"
+  },
+  {
+   "fieldname": "verified_by",
+   "fieldtype": "Data",
+   "label": "Verified By"
+  },
+  {
+   "fieldname": "column_break_wqlh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "on_settlement_of",
+   "fieldtype": "Small Text",
+   "label": "On Settlement of"
+  },
+  {
+   "fieldname": "paid_by",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Paid By"
+  },
+  {
+   "fieldname": "received_by",
+   "fieldtype": "Data",
+   "label": "Received By"
+  },
+  {
+   "fieldname": "sum_of",
+   "fieldtype": "Small Text",
+   "label": "The Sum Of"
+  },
+  {
+   "fieldname": "on_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "On"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-12 15:57:58.400379",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Payment Voucher",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "voucher_no"
+}
