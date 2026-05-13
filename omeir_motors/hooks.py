@@ -148,6 +148,12 @@ override_doctype_class = {
 # 	}
 # }
 
+doc_events = {
+    "Sales Invoice": {
+        "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
+    }
+}
+
 # Scheduled Tasks
 # ---------------
 scheduler_events = {
@@ -266,6 +272,18 @@ fixtures = [
                 "Vehicle Service Dashboard",
                 "Workshop Dashboard",
                 "Overview Dashboard"
+            ]]
+        ]
+    },
+    {
+        "doctype": "Role",
+        "filters": [
+            ["name", "in", [
+                "Invoice Full Access",
+                "Parts Incharge",
+                "Workshop Manager",
+                "Parts Controller",
+                "Service Advisor"
             ]]
         ]
     }

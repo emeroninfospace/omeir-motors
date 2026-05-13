@@ -38,6 +38,35 @@ frappe.ui.form.on('Sales Invoice', {
         }
     },
 
+    additional_discount_percentage: function(frm) {
+        validate_discount_limit(frm);
+    },
+
+    discount_amount: function(frm) {
+        validate_discount_limit(frm);
+    },
+});
+
+function validate_discount_limit(frm) {
+    let discount = frm.doc.additional_discount_percentage || 0;
+    if (discount <= 0) return;
+
+    frappe.call({
+        method: "omeir_motors.omeir_motors.api.sales_invoice.validate_discount",
+        args: { discount_percentage: discount },
+        callback: function(r) {
+            if (r.message && !r.message.allowed) {
+                frappe.msgprint({
+                    title: __("Discount Limit Exceeded"),
+                    message: __(r.message.message),
+                    indicator: "red"
+                });
+                frm.set_value("additional_discount_percentage", r.message.max_discount);
+            }
+        }
+    });
+}
+
     // before_submit: function(frm) {
     //     if (!frm.doc.custom_job_order) return;
 
@@ -69,4 +98,4 @@ frappe.ui.form.on('Sales Invoice', {
     //         });
     //     });
     // }
-});
+// });
