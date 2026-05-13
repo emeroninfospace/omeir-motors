@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, add_months
+from frappe import _
 
 
 class PrepaidExpense(Document):
@@ -19,9 +20,9 @@ class PrepaidExpense(Document):
         if not self.prepaid_account:
             frappe.throw("Please select Prepaid Account")
         if not self.expense_account:
-            frappe.throw("Please select Expense Account")
-        if not self.payable_account:
-            frappe.throw("Please select Payable Account")
+            frappe.throw(_("Please select Expense Account"))
+        if self.type == "Expense" and not self.payable_account:
+            frappe.throw(_("Please select Payable Account"))
         if not self.number_of_months or self.number_of_months <= 0:
             frappe.throw("Number of Months must be greater than 0")
         if not self.start_date:
