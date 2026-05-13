@@ -17,6 +17,7 @@
   "warehouse",
   "total_duration",
   "gate_pass_issued",
+  "invoiced_status",
   "column_break_atxk",
   "expected_completion_date",
   "customer",
@@ -433,13 +434,19 @@
    "fieldname": "gate_pass_issued",
    "fieldtype": "Check",
    "label": "Gate Pass Issued?"
+  },
+  {
+   "fieldname": "invoiced_status",
+   "fieldtype": "Select",
+   "label": "Invoiced Status",
+   "options": "\nInvoiced\nNot Invoiced"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-08 12:14:48.178163",
+ "modified": "2026-05-13 13:26:16.398293",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
