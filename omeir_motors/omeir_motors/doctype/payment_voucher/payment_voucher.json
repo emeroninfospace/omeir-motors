@@ -1,12 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "PV-.YY.-.####.",
+ "autoname": "naming_series:",
  "creation": "2026-05-12 15:12:00.739720",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "voucher_no",
+  "naming_series",
   "date",
   "amount",
   "payment_method",
@@ -20,12 +20,6 @@
   "received_by"
  ],
  "fields": [
-  {
-   "fieldname": "voucher_no",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Voucher No"
-  },
   {
    "default": "Today",
    "fieldname": "date",
@@ -88,16 +82,22 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "On"
+  },
+  {
+   "default": "PV-.YYYY.-.####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Voucher No",
+   "options": "PV-.YYYY.-.####"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-12 15:57:58.400379",
+ "modified": "2026-05-13 11:38:43.349107",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Payment Voucher",
- "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -117,6 +117,5 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "title_field": "voucher_no"
+ "states": []
 }
