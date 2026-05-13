@@ -161,17 +161,17 @@ def make_payment_entry(invoice, mode_of_payment, amount):
     je.cheque_date = invoice_doc.transaction_date
 
     je.append("accounts", {
-        "account": default_account,
+        "account": payable_account,
         "debit_in_account_currency": amount,
+        "party_type": "Supplier",
+        "party": invoice_doc.supplier,
         "project": project,
         "cost_center": invoice_doc.cost_center
     })
 
     je.append("accounts", {
-        "account": payable_account,
+        "account": default_account,
         "credit_in_account_currency": amount,
-        "party_type": "Supplier",
-        "party": invoice_doc.supplier,
         "project": project,
         "cost_center": invoice_doc.cost_center
     })

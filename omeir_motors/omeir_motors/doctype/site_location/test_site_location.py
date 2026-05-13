@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestSite(FrappeTestCase):
+class TestSiteLocation(FrappeTestCase):
 	pass
