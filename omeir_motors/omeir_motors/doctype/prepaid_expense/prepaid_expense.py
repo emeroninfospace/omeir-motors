@@ -52,7 +52,7 @@ class PrepaidExpense(Document):
         start = getdate(self.start_date)
 
         for i in range(self.number_of_months):
-            schedule_date = add_months(start, i)
+            schedule_date = add_months(start, i + 1)
 
             if i == self.number_of_months - 1:
                 amount = flt(self.total_amount - total_allocated, 2)
