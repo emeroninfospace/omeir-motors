@@ -16,7 +16,7 @@ class JobOrder(Document):
     def before_save(self):
         pass
 
-    def on_update(self):
+    def on_update_after_submit(self):
         self.calculate_total()
 
     def on_submit(self):
