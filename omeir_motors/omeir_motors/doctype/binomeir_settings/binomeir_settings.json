@@ -7,6 +7,7 @@
  "field_order": [
   "odometer_validate",
   "validate_employee",
+  "validate_job_order",
   "column_break_zrde",
   "sublet_margin",
   "job_order_margin"
@@ -37,13 +38,19 @@
    "fieldname": "validate_employee",
    "fieldtype": "Check",
    "label": "Validate Employee"
+  },
+  {
+   "default": "0",
+   "fieldname": "validate_job_order",
+   "fieldtype": "Check",
+   "label": "Validate Job order"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 14:15:10.112901",
+ "modified": "2026-05-18 09:42:38.044044",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Binomeir Settings",

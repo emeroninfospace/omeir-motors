@@ -45,37 +45,46 @@ frappe.ui.form.on('Sales Invoice', {
     discount_amount: function(frm) {
         validate_discount_limit(frm);
     },
-    before_submit: function(frm) {
-        if (!frm.doc.custom_job_order) return;
+   before_submit: function(frm) {
+    if (!frm.doc.custom_job_order) return;
 
-        return new Promise(function(resolve, reject) {
-            frappe.call({
-                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.validate_invoice_items_match',
-                args: {
-                    job_order: frm.doc.custom_job_order,
-                    sales_invoice: frm.doc.name
-                },
-                callback: function(r) {
-                    if (r.message && r.message.mismatches && r.message.mismatches.length) {
-                        var msg = '<b>The following items do not match the Job Order:</b><br><br>';
-                        r.message.mismatches.forEach(function(m) {
-                            msg += '&bull; ' + m + '<br>';
-                        });
-                        msg += '<br>Use the <b>Sync to Sales Invoice</b> button on the Job Order to fix this before submitting.';
-
-                        frappe.msgprint({
-                            title: __('Item Mismatch with Job Order'),
-                            message: msg,
-                            indicator: 'red'
-                        });
-                        reject();
-                    } else {
-                        resolve();
-                    }
+    return new Promise(function(resolve, reject) {
+        frappe.db.get_single_value('Omeir Settings', 'validate_job_order')
+            .then(function(validate_job_order) {
+                
+                if (!validate_job_order) {
+                    resolve();
+                    return;
                 }
+
+                frappe.call({
+                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.validate_invoice_items_match',
+                    args: {
+                        job_order: frm.doc.custom_job_order,
+                        sales_invoice: frm.doc.name
+                    },
+                    callback: function(r) {
+                        if (r.message && r.message.mismatches && r.message.mismatches.length) {
+                            var msg = '<b>The following items do not match the Job Order:</b><br><br>';
+                            r.message.mismatches.forEach(function(m) {
+                                msg += '&bull; ' + m + '<br>';
+                            });
+                            msg += '<br>Use the <b>Sync to Sales Invoice</b> button on the Job Order to fix this before submitting.';
+
+                            frappe.msgprint({
+                                title: __('Item Mismatch with Job Order'),
+                                message: msg,
+                                indicator: 'red'
+                            });
+                            reject();
+                        } else {
+                            resolve();
+                        }
+                    }
+                });
             });
-        });
-    }
+    });
+}
 });
 
 function validate_discount_limit(frm) {
