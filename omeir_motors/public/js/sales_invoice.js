@@ -49,7 +49,7 @@ frappe.ui.form.on('Sales Invoice', {
     if (!frm.doc.custom_job_order) return;
 
     return new Promise(function(resolve, reject) {
-        frappe.db.get_single_value('Omeir Settings', 'validate_job_order')
+        frappe.db.get_single_value('Binomeir Settings', 'validate_job_order')
             .then(function(validate_job_order) {
                 
                 if (!validate_job_order) {
