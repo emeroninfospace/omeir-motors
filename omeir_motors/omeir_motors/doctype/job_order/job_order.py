@@ -788,31 +788,53 @@ def validate_invoice_items_match(job_order, sales_invoice):
     job_doc = frappe.get_doc("Job Order", job_order)
     sinv_doc = frappe.get_doc("Sales Invoice", sales_invoice)
 
-    jo_items = {}
+    jo_strict_items = {}
     for item in job_doc.get("job_order_items") or []:
-        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
-    for item in job_doc.get("service_item") or []:
-        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
+        jo_strict_items[item.item_code] = {
+            "qty": jo_strict_items.get(item.item_code, {}).get("qty", 0) + flt(item.quantity),
+            "rate": flt(item.rate)
+        }
     for item in job_doc.get("sublet_details") or []:
-        jo_items[item.item_code] = jo_items.get(item.item_code, 0) + flt(item.quantity)
+        jo_strict_items[item.item_code] = {
+            "qty": jo_strict_items.get(item.item_code, {}).get("qty", 0) + flt(item.quantity),
+            "rate": flt(item.rate)
+        }
+
+    jo_service_item_codes = {item.item_code for item in job_doc.get("service_item") or []}
 
     sinv_items = {}
     for item in sinv_doc.items:
-        sinv_items[item.item_code] = sinv_items.get(item.item_code, 0) + flt(item.qty)
+        sinv_items[item.item_code] = {
+            "qty": sinv_items.get(item.item_code, {}).get("qty", 0) + flt(item.qty),
+            "rate": flt(item.rate)
+        }
 
     mismatches = []
 
-    for item_code, jo_qty in jo_items.items():
-        sinv_qty = sinv_items.get(item_code, 0)
-        if flt(sinv_qty, 3) != flt(jo_qty, 3):
+    for item_code, jo_data in jo_strict_items.items():
+        if item_code not in sinv_items:
             mismatches.append(
-                f"{item_code}: Job Order qty = {jo_qty}, Invoice qty = {sinv_qty}"
+                f"{item_code}: present in Job Order but missing in Invoice"
+            )
+            continue
+
+        sinv_data = sinv_items[item_code]
+
+        if flt(sinv_data["qty"], 3) != flt(jo_data["qty"], 3):
+            mismatches.append(
+                f"{item_code}: Qty mismatch — Job Order = {jo_data['qty']}, Invoice = {sinv_data['qty']}"
             )
 
-    for item_code in sinv_items:
-        if item_code not in jo_items:
+        if flt(sinv_data["rate"], 3) != flt(jo_data["rate"], 3):
             mismatches.append(
-                f"{item_code}: present in Invoice but NOT in Job Order"
+                f"{item_code}: Rate mismatch — Job Order = {jo_data['rate']}, Invoice = {sinv_data['rate']}"
             )
+
+    for item_code in jo_service_item_codes:
+        if item_code not in sinv_items:
+            mismatches.append(
+                f"{item_code}: present in Job Order (Service Item) but missing in Invoice"
+            )
+
 
     return {"mismatches": mismatches}
