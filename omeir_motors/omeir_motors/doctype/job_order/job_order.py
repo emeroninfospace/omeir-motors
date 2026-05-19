@@ -237,7 +237,7 @@ def make_sales_invoice(source_name, target_doc=None):
                 "description": item.description,
                 "uom": item.uom,
                 "quantity": item.quantity,
-                "rate": item.margin_amount,
+                "rate": item.margin_rate,
                 "source_table": "sublet_details"
             })
 
@@ -678,7 +678,7 @@ def make_subcontract(name):
                 "item_code": sublet.item_code,
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
-                "rate": sublet.rate,
+                "rate": sublet.margin_rate,
                 "margin_amount":sublet.margin_amount,
                 "amount": sublet.amount,
                 "job_order": order.name
@@ -738,8 +738,8 @@ def sync_sales_invoice_items(job_order):
                 "description": item.description,
                 "uom": item.uom,
                 "qty": item.quantity,
-                "rate": item.margin_amount,
-                "amount": flt(item.quantity) * flt(item.margin_amount),
+                "rate": item.margin_rate,
+                "amount": flt(item.quantity) * flt(item.margin_rate),
             })
 
         for item_data in item_list:
@@ -797,7 +797,7 @@ def validate_invoice_items_match(job_order, sales_invoice):
     for item in job_doc.get("sublet_details") or []:
         jo_strict_items[item.item_code] = {
             "qty": jo_strict_items.get(item.item_code, {}).get("qty", 0) + flt(item.quantity),
-            "rate": flt(item.rate)
+            "rate": flt(item.margin_rate)
         }
 
     jo_service_item_codes = {item.item_code for item in job_doc.get("service_item") or []}

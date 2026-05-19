@@ -60,6 +60,7 @@
   {
    "fieldname": "margin_amount",
    "fieldtype": "Currency",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Margin Amount",
    "read_only": 1
@@ -69,7 +70,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-13 17:36:39.464091",
+ "modified": "2026-05-19 13:04:06.243019",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Work Item",
