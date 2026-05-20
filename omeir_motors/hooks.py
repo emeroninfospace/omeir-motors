@@ -45,7 +45,8 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {"Quotation" : "public/js/quotation.js",
               "Sales Invoice": "public/js/sales_invoice.js",
-              "Purchase Receipt": "public/js/purchase_receipt.js"}
+              "Purchase Receipt": "public/js/purchase_receipt.js",
+              "Purchase Order": "public/js/purchase_order.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -151,7 +152,10 @@ override_doctype_class = {
 doc_events = {
     "Sales Invoice": {
         "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
-    }
+    },
+    "Purchase Order": {
+        "validate": "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref"
+    },
 }
 
 # Scheduled Tasks
@@ -285,6 +289,19 @@ fixtures = [
                 "Parts Controller",
                 "Service Advisor"
             ]]
+        ]
+    },
+    {
+        "dt": "Property Setter",
+        "filters": [
+            ["name", "in", ["Purchase Invoice-main-field_order"]]
+        ]
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["name", "in", ["Purchase Invoice-custom_po_no",
+                             "Purchase Invoice-custom_specific_pr"]]
         ]
     }
 ]
