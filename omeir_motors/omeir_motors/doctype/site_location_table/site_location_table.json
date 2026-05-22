@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2026-05-08 12:31:56.468713",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "location"
@@ -12,15 +13,14 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Location",
-   "options": "Site Location",
-   "unique": 1
+   "options": "Site Location"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-11 12:56:44.134182",
+ "modified": "2026-05-22 09:42:54.925694",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Site Location Table",
