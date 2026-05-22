@@ -31,7 +31,9 @@ frappe.ui.form.on('Job Order', {
         });
     },
     before_save: function(frm) {
-        frm.set_value('vehicle_in', frappe.datetime.now_datetime());
+        if (!frm.doc.vehicle_in) {
+            frm.set_value('vehicle_in', frappe.datetime.now_datetime());
+        }
     },
     onload: function(frm) {
         frappe.db.get_single_value('Binomeir Settings', 'sublet_margin')
