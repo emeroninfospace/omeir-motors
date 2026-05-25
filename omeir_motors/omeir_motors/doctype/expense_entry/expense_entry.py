@@ -21,7 +21,7 @@ class ExpenseEntry(Document):
             if item.amount and item.vat_percentage:
                 item.vat_amount = flt(item.amount * item.vat_percentage / 100)
             else:
-                item.vat_amount = 0
+                item.vat_amount = item.vat_amount
 
             item.total_amount = flt(item.amount) + flt(item.vat_amount)
 
@@ -78,7 +78,7 @@ class ExpenseEntry(Document):
             # VAT Debit
             if vat_amount > 0:
                 je.append("accounts", {
-                    "account": row.tax_account,
+                    "account": "VAT 5% - BOMC",
                     "debit_in_account_currency": vat_amount
                 })
                 total_debit += vat_amount
