@@ -156,6 +156,9 @@ doc_events = {
     "Purchase Order": {
         "validate": "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref"
     },
+    "Purchase Receipt": {
+        "validate": "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref"
+    }
 }
 
 # Scheduled Tasks
