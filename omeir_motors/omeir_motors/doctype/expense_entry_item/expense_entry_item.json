@@ -47,6 +47,7 @@
    "options": "Supplier"
   },
   {
+   "fetch_from": "supplier_name.tax_id",
    "fieldname": "trn",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -122,7 +123,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-02 10:18:01.639533",
+ "modified": "2026-06-02 11:59:26.696620",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Expense Entry Item",
