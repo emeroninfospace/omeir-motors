@@ -41,9 +41,10 @@
   },
   {
    "fieldname": "supplier_name",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Supplier Name"
+   "label": "Supplier Name",
+   "options": "Supplier"
   },
   {
    "fieldname": "trn",
@@ -121,7 +122,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-25 11:50:38.197200",
+ "modified": "2026-06-02 10:18:01.639533",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Expense Entry Item",
