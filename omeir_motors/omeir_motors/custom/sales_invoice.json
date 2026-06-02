@@ -2148,7 +2148,7 @@
    "property": "default_print_format",
    "property_type": "Data",
    "row_name": null,
-   "value": "Sales Invoice"
+   "value": "Si"
   },
   {
    "_assign": null,
