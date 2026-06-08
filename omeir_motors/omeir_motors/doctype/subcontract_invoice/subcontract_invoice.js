@@ -239,11 +239,10 @@ function make_payment(frm) {
                     callback(r) {
                         if (r.message) {
                             d.hide();
-                            frappe.msgprint({
-                                title: __("Payment Created"),
-                                message: __("Journal Entry {0} created successfully.", [r.message]),
+                            frappe.show_alert({
+                                message: `Journal Entry <b>${r.message}</b> created successfully.`,
                                 indicator: "green"
-                            });
+                            }, 7);
                             frm.reload_doc();
                         }
                     }
