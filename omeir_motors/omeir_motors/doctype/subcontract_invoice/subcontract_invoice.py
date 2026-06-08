@@ -84,6 +84,8 @@ class SubcontractInvoice(Document):
             "party": self.supplier,
             "voucher_type": self.doctype,
             "voucher_no": self.name,
+            "against_voucher_type": self.doctype,
+            "against_voucher": self.name,
             "company": self.company,
             "posting_date": posting_date,
             "cost_center": self.cost_center,
@@ -121,7 +123,7 @@ class SubcontractInvoice(Document):
 
 
 @frappe.whitelist()
-def make_payment_entry(invoice, mode_of_payment, amount):
+def make_payment_entry(invoice, mode_of_payment, amount, posting_date=None):
     invoice_doc = frappe.get_doc("Subcontract Invoice", invoice)
 
     company = invoice_doc.company
@@ -156,7 +158,7 @@ def make_payment_entry(invoice, mode_of_payment, amount):
     je = frappe.new_doc("Journal Entry")
     je.voucher_type = "Journal Entry"
     je.company = company
-    je.posting_date = frappe.utils.nowdate()
+    je.posting_date = getdate(posting_date) if posting_date else frappe.utils.nowdate()
     je.cheque_no = invoice_doc.name
     je.cheque_date = invoice_doc.transaction_date
 
@@ -178,6 +180,26 @@ def make_payment_entry(invoice, mode_of_payment, amount):
 
     je.insert(ignore_permissions=True)
     je.submit()
+
+    frappe.db.sql("""
+        UPDATE `tabGL Entry`
+        SET against_voucher_type = 'Subcontract Invoice',
+            against_voucher = %s
+        WHERE voucher_type = 'Journal Entry'
+          AND voucher_no = %s
+          AND party_type = 'Supplier'
+          AND party = %s
+    """, (invoice, je.name, invoice_doc.supplier))
+
+    frappe.db.sql("""
+        UPDATE `tabPayment Ledger Entry`
+        SET against_voucher_type = 'Subcontract Invoice',
+            against_voucher_no = %s
+        WHERE voucher_type = 'Journal Entry'
+          AND voucher_no = %s
+          AND party_type = 'Supplier'
+          AND party = %s
+    """, (invoice, je.name, invoice_doc.supplier))
 
     paid_amount = flt(paid_amount + amount, 2)
 

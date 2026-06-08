@@ -185,6 +185,13 @@ function make_payment(frm) {
             title: "Make Payment",
             fields: [
                 {
+                    label: "Posting Date",
+                    fieldname: "posting_date",
+                    fieldtype: "Date",
+                    reqd: 1,
+                    default: frappe.datetime.get_today()
+                },
+                {
                     label: "Mode of Payment",
                     fieldname: "mode_of_payment",
                     fieldtype: "Link",
@@ -226,7 +233,8 @@ function make_payment(frm) {
                     args: {
                         invoice: frm.doc.name,
                         mode_of_payment: values.mode_of_payment,
-                        amount: values.amount
+                        amount: values.amount,
+                        posting_date: values.posting_date
                     },
                     callback(r) {
                         if (r.message) {
