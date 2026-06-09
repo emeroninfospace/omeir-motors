@@ -1,0 +1,32 @@
+{
+ "attach_files": "",
+ "attach_print": 0,
+ "channel": "System Notification",
+ "condition": "doc.custom_visa_expiry_date and doc.custom_visa_status == \"Active\" and doc.status == \"Active\"",
+ "creation": "2026-06-08 18:08:58.259206",
+ "date_changed": "custom_visa_expiry_date",
+ "days_in_advance": 30,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Employee",
+ "enabled": 1,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "Employee **{{ doc.employee_name }}** ({{ doc.name }}) visa is expiring on **{{ doc.custom_visa_expiry_date }}**.\n\n- Visa Number: {{ doc.custom_visa_number }}\n- Visa Type: {{ doc.custom_visa_type }}\n- UID Number: {{ doc.custom_uid_number }}\n\nPlease initiate the renewal process immediately.",
+ "message_type": "Markdown",
+ "modified": "2026-06-08 18:16:49.210563",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Visa Expiry Alert",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "",
+   "receiver_by_role": "HR Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Visa Expiring - {{ doc.employee_name }}"
+}
