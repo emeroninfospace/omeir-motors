@@ -1,0 +1,37 @@
+{
+ "attach_files": "",
+ "attach_print": 0,
+ "channel": "System Notification",
+ "condition": "doc.valid_upto and doc.status == \"Active\"",
+ "creation": "2026-06-08 18:13:03.602228",
+ "date_changed": "valid_upto",
+ "days_in_advance": 60,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Employee",
+ "enabled": 1,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "Employee **{{ doc.employee_name }}** ({{ doc.name }}) passport is expiring on **{{ doc.valid_upto }}**.\n\n- Passport Number: {{ doc.passport_number }}\n- Department: {{ doc.department }}\n- Designation: {{ doc.designation }}\n\nPlease remind the employee to renew their passport.",
+ "message_type": "Markdown",
+ "modified": "2026-06-08 18:34:19.544047",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Passport Expiry Alert",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "HR Manager"
+  },
+  {
+   "receiver_by_role": "Employee"
+  },
+  {
+   "receiver_by_role": "HR User"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Passport Expiring - {{ doc.employee_name }}"
+}
