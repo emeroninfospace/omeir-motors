@@ -206,7 +206,8 @@ scheduler_events = {
 # }
 
 override_doctype_dashboards = {
-	"Quotation": "omeir_motors.overrides.quotation_dashboard.get_data"
+	"Quotation": "omeir_motors.overrides.quotation_dashboard.get_data",
+    "Supplier": "omeir_motors.overrides.supplier_dashboard.get_data"
 }
 
 # exempt linked doctypes from being automatically cancelled
