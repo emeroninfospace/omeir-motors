@@ -21,17 +21,16 @@ def get_columns():
 			"width": 160,
 		},
 		{
+			"label": _("Posting Date"),
+			"fieldname": "posting_date",
+			"fieldtype": "Date",
+			"width": 120,
+		},
+		{
 			"label": _("Customer Name"),
 			"fieldname": "customer_name",
 			"fieldtype": "Data",
 			"width": 180,
-		},
-		{
-			"label": _("Company"),
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"options": "Company",
-			"width": 140,
 		},
 		{
 			"label": _("Status"),
@@ -51,6 +50,12 @@ def get_columns():
 			"fieldtype": "Link",
 			"options": "Job Order",
 			"width": 140,
+		},
+		{
+			"label": _("Service Description"),
+			"fieldname": "custom_service_description",
+			"fieldtype": "Small Text",
+			"width": 150,
 		},
 		{
 			"label": _("Vehicle No"),
@@ -125,11 +130,12 @@ def get_data(filters):
 		"""
 		SELECT
 			si.name,
+			si.posting_date,
 			si.customer_name,
-			si.company,
 			si.status,
 			u.full_name AS owner,
 			si.custom_job_order,
+			si.custom_service_description,
 			si.custom_vehicle_no,
 			si.custom_vehicle_in,
 			si.custom_vehicle_out,
@@ -162,8 +168,12 @@ def get_data(filters):
 def get_conditions(filters):
 	conditions = ""
 
-	if filters.get("company"):
-		conditions += " AND si.company = %(company)s"
+	
+	if filters.get("customer"):
+		conditions += " AND si.customer = %(customer)s"
+
+	if filters.get("status"):
+		conditions += " AND si.status = %(status)s"
 
 	if filters.get("from_date"):
 		conditions += " AND si.posting_date >= %(from_date)s"
