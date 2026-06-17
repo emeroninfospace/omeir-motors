@@ -30,6 +30,13 @@ frappe.query_reports["Sales Report"] = {
 			fieldtype: "Date",
 		},
 		{
+			fieldname: "customer",
+			label: __("Customer"),
+			fieldtype: "Link",
+			options: "Customer",
+		},
+		
+		{
 			fieldname: "custom_payment_type",
 			label: __("Payment Type"),
 			fieldtype: "Select",
@@ -47,5 +54,11 @@ frappe.query_reports["Sales Report"] = {
 			fieldtype: "Link",
 			options: "Service Notification",
 		},
+		{
+			fieldname: "status",
+			label: __("Status"),
+			fieldtype: "Select",
+			options: "\nDraft\nSubmitted\nCancelled",
+		}
 	],
 };

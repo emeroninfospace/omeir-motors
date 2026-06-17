@@ -53,6 +53,12 @@ def get_columns():
 			"width": 140,
 		},
 		{
+			"label": _("Service Description"),
+			"fieldname": "custom_service_description",
+			"fieldtype": "Small Text",
+			"width": 150,
+		},
+		{
 			"label": _("Vehicle No"),
 			"fieldname": "custom_vehicle_no",
 			"fieldtype": "Link",
@@ -130,6 +136,7 @@ def get_data(filters):
 			si.status,
 			u.full_name AS owner,
 			si.custom_job_order,
+			si.custom_service_description,
 			si.custom_vehicle_no,
 			si.custom_vehicle_in,
 			si.custom_vehicle_out,
@@ -164,6 +171,12 @@ def get_conditions(filters):
 
 	if filters.get("company"):
 		conditions += " AND si.company = %(company)s"
+
+	if filters.get("customer"):
+		conditions += " AND si.customer = %(customer)s"
+
+	if filters.get("status"):
+		conditions += " AND si.status = %(status)s"
 
 	if filters.get("from_date"):
 		conditions += " AND si.posting_date >= %(from_date)s"
