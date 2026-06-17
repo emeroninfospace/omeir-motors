@@ -21,17 +21,16 @@ def get_columns():
 			"width": 160,
 		},
 		{
+			"label": _("Posting Date"),
+			"fieldname": "posting_date",
+			"fieldtype": "Date",
+			"width": 120,
+		},
+		{
 			"label": _("Customer Name"),
 			"fieldname": "customer_name",
 			"fieldtype": "Data",
 			"width": 180,
-		},
-		{
-			"label": _("Company"),
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"options": "Company",
-			"width": 140,
 		},
 		{
 			"label": _("Status"),
@@ -131,8 +130,8 @@ def get_data(filters):
 		"""
 		SELECT
 			si.name,
+			si.posting_date,
 			si.customer_name,
-			si.company,
 			si.status,
 			u.full_name AS owner,
 			si.custom_job_order,
@@ -169,9 +168,7 @@ def get_data(filters):
 def get_conditions(filters):
 	conditions = ""
 
-	if filters.get("company"):
-		conditions += " AND si.company = %(company)s"
-
+	
 	if filters.get("customer"):
 		conditions += " AND si.customer = %(customer)s"
 

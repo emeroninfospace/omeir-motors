@@ -3,13 +3,7 @@
 
 frappe.query_reports["Sales Report"] = {
 	filters: [
-		{
-			fieldname: "company",
-			label: __("Company"),
-			fieldtype: "Link",
-			options: "Company",
-			default: frappe.defaults.get_user_default("Company"),
-		},
+	
 		{
 			fieldname: "from_date",
 			label: __("From Date"),
@@ -25,15 +19,15 @@ frappe.query_reports["Sales Report"] = {
 			reqd: 1,
 		},
 		{
-			fieldname: "due_date",
-			label: __("Payment Due Date"),
-			fieldtype: "Date",
-		},
-		{
 			fieldname: "customer",
 			label: __("Customer"),
 			fieldtype: "Link",
 			options: "Customer",
+		},
+		{
+			fieldname: "due_date",
+			label: __("Payment Due Date"),
+			fieldtype: "Date",
 		},
 		
 		{
