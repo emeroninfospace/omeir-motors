@@ -158,6 +158,9 @@ doc_events = {
     },
     "Purchase Receipt": {
         "validate": "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref"
+    },
+    "Journal Entry": {
+        "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel"
     }
 }
 

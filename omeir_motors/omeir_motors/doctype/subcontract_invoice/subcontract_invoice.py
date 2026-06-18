@@ -216,3 +216,77 @@ def make_payment_entry(invoice, mode_of_payment, amount, posting_date=None):
             frappe.db.set_value("Subcontract Work Order", invoice_doc.subcontract_work_order, "status", "Partially Billed")
 
     return je.name
+
+
+def on_journal_entry_cancel(doc, method=None):
+    linked_invoices = frappe.db.sql_list("""
+        SELECT DISTINCT against_voucher
+        FROM `tabGL Entry`
+        WHERE voucher_type = 'Journal Entry'
+          AND voucher_no = %s
+          AND against_voucher_type = 'Subcontract Invoice'
+          AND against_voucher IS NOT NULL
+          AND against_voucher != ''
+    """, doc.name)
+
+    for invoice_name in linked_invoices:
+        _recalculate_paid_amount(invoice_name)
+
+
+def _recalculate_paid_amount(invoice_name):
+    paid_amount = flt(frappe.db.sql("""
+        SELECT COALESCE(SUM(debit), 0)
+        FROM `tabGL Entry`
+        WHERE against_voucher_type = 'Subcontract Invoice'
+          AND against_voucher = %s
+          AND voucher_type = 'Journal Entry'
+          AND is_cancelled = 0
+          AND party_type = 'Supplier'
+    """, invoice_name)[0][0], 2)
+
+    grand_total = flt(frappe.db.get_value("Subcontract Invoice", invoice_name, "grand_total"), 2)
+
+    if paid_amount <= 0:
+        status = "Unpaid"
+    elif paid_amount >= grand_total:
+        status = "Paid"
+    else:
+        status = "Partially Paid"
+
+    frappe.db.set_value("Subcontract Invoice", invoice_name, {
+        "paid_amount": paid_amount,
+        "status": status
+    }, update_modified=False)
+
+    work_order = frappe.db.get_value("Subcontract Invoice", invoice_name, "subcontract_work_order")
+    if work_order:
+        if paid_amount >= grand_total:
+            wo_status = "Paid"
+        elif paid_amount > 0:
+            wo_status = "Partially Billed"
+        else:
+            wo_status = "Invoiced"
+        frappe.db.set_value("Subcontract Work Order", work_order, "status", wo_status)
+
+
+@frappe.whitelist()
+def repost_date(invoice, new_date):
+    invoice_doc = frappe.get_doc("Subcontract Invoice", invoice)
+
+    if invoice_doc.docstatus != 1:
+        frappe.throw("Can only repost date on submitted invoices")
+
+    new_date = getdate(new_date)
+
+    frappe.db.sql("""
+        UPDATE `tabGL Entry`
+        SET posting_date = %s
+        WHERE voucher_type = 'Subcontract Invoice'
+          AND voucher_no = %s
+          AND is_cancelled = 0
+    """, (new_date, invoice))
+
+    frappe.db.set_value("Subcontract Invoice", invoice, "transaction_date", new_date, update_modified=False)
+
+    frappe.db.commit()
+    return str(new_date)
