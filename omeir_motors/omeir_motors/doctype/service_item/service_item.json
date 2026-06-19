@@ -9,6 +9,8 @@
   "item_code",
   "description",
   "vehicle_no",
+  "model",
+  "odometer",
   "quantity",
   "rate",
   "amount",
@@ -66,6 +68,7 @@
   {
    "allow_on_submit": 1,
    "columns": 1,
+   "fetch_from": "vehicle_no.chassis_no",
    "fieldname": "description",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -126,13 +129,25 @@
    "in_list_view": 1,
    "label": "Vehicle No",
    "options": "Vehicle"
+  },
+  {
+   "fetch_from": "vehicle_no.custom_custom_model",
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "fetch_from": "vehicle_no.last_odometer",
+   "fieldname": "odometer",
+   "fieldtype": "Float",
+   "label": "Odometer"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-16 11:51:44.026381",
+ "modified": "2026-06-19 10:56:50.511340",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Service Item",

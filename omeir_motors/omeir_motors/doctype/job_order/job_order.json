@@ -25,6 +25,7 @@
   "type",
   "address",
   "amended_from",
+  "vehicle_service_location",
   "driver_details_section",
   "driver",
   "license_number",
@@ -441,13 +442,19 @@
    "fieldtype": "Select",
    "label": "Invoiced Status",
    "options": "\nInvoiced\nNot Invoiced"
+  },
+  {
+   "fieldname": "vehicle_service_location",
+   "fieldtype": "Select",
+   "label": "Vehicle Service Location",
+   "options": "\nRUWAIS\nHABSHAN\nSHAH\nAGENCY\nON ROAD ASSISTANCE"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-01 09:27:04.668653",
+ "modified": "2026-06-19 10:41:50.436752",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
