@@ -678,9 +678,9 @@ def make_subcontract(name):
                 "item_code": sublet.item_code,
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
-                "rate": sublet.margin_rate,
-                "margin_amount":sublet.margin_amount,
-                "amount": sublet.amount,
+                "rate": sublet.rate,
+                "margin_amount": sublet.quantity * sublet.rate,
+                "amount": sublet.quantity * sublet.rate,
                 "job_order": order.name
             })
     
