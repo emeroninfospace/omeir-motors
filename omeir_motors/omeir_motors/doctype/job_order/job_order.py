@@ -179,6 +179,7 @@ def make_sales_invoice(source_name, target_doc=None):
         target.set_warehouse = source.warehouse
         target.selling_price_list = ""
         target.disable_rounded_total = 1
+        target.custom_bus_type = source.bus_type
 
         if source.company:
             target.company = source.company
