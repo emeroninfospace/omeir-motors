@@ -48,11 +48,11 @@ class ExpenseEntry(Document):
     from frappe.utils import flt
 
     @frappe.whitelist()
-    def make_journal_entry(self):
+    def make_journal_entry(self, payment_date=None):
         je = frappe.new_doc("Journal Entry")
         je.voucher_type = "Journal Entry"
         je.company = self.company
-        je.posting_date = self.posting_date
+        je.posting_date = payment_date or self.posting_date
         je.remark = f"Journal Entry for Expense Entry {self.name}"
 
         total_debit = 0
@@ -109,7 +109,7 @@ class ExpenseEntry(Document):
 
 
 @frappe.whitelist()
-def make_payment_for_expense_entry(name):
+def make_payment_for_expense_entry(name, payment_date=None):
     doc = frappe.get_doc("Expense Entry", name)
 
     if doc.docstatus != 1:
@@ -121,4 +121,4 @@ def make_payment_for_expense_entry(name):
     if doc.journal_entry:
         frappe.throw(_("Expense Entry {0} already has a Journal Entry.").format(name))
 
-    return doc.make_journal_entry()
+    return doc.make_journal_entry(payment_date=payment_date)
