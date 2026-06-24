@@ -13,10 +13,55 @@ class SubcontractInvoice(Document):
         self.make_gl_entries()
         self.db_set("status", "Unpaid", update_modified=False)
 
+    def before_cancel(self):
+        self._cancel_linked_journal_entries()
+
     def on_cancel(self):
+        self.ignore_linked_doctypes = ("GL Entry", "Payment Ledger Entry")
         from erpnext.accounts.general_ledger import make_reverse_gl_entries
         make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
         self.db_set("status", "Cancelled", update_modified=False)
+
+    def on_trash(self):
+        self._delete_linked_journal_entries()
+        frappe.db.sql("""
+            DELETE FROM `tabGL Entry`
+            WHERE voucher_type = 'Subcontract Invoice' AND voucher_no = %s
+        """, self.name)
+        frappe.db.sql("""
+            DELETE FROM `tabPayment Ledger Entry`
+            WHERE voucher_type = 'Subcontract Invoice' AND voucher_no = %s
+        """, self.name)
+
+    def _cancel_linked_journal_entries(self):
+        linked_jes = frappe.db.sql_list("""
+            SELECT DISTINCT voucher_no
+            FROM `tabGL Entry`
+            WHERE against_voucher_type = 'Subcontract Invoice'
+              AND against_voucher = %s
+              AND voucher_type = 'Journal Entry'
+              AND is_cancelled = 0
+        """, self.name)
+
+        for je_name in linked_jes:
+            je_doc = frappe.get_doc("Journal Entry", je_name)
+            if je_doc.docstatus == 1:
+                je_doc.cancel()
+
+    def _delete_linked_journal_entries(self):
+        linked_jes = frappe.db.sql_list("""
+            SELECT DISTINCT voucher_no
+            FROM `tabGL Entry`
+            WHERE against_voucher_type = 'Subcontract Invoice'
+              AND against_voucher = %s
+              AND voucher_type = 'Journal Entry'
+        """, self.name)
+
+        for je_name in linked_jes:
+            je_doc = frappe.get_doc("Journal Entry", je_name)
+            if je_doc.docstatus == 1:
+                je_doc.cancel()
+            frappe.delete_doc("Journal Entry", je_name, ignore_permissions=True, force=True)
 
     def update_payment_status(self):
         paid = flt(self.paid_amount, 2)

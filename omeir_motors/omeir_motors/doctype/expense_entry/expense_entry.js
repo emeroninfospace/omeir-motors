@@ -36,12 +36,24 @@ frappe.ui.form.on("Expense Entry", {
         
         if (frm.doc.docstatus === 1 && !frm.is_new() && !frm.doc.journal_entry) {
             frm.add_custom_button(__("Make Payment"), function() {
-                frappe.confirm(
-                    __("Are you sure you want to create and submit a Journal Entry for this Expense Entry?"),
-                    function() {
+                let d = new frappe.ui.Dialog({
+                    title: __("Select Payment Date"),
+                    fields: [
+                        {
+                            fieldtype: "Date",
+                            fieldname: "payment_date",
+                            label: __("Payment Date"),
+                            reqd: 1,
+                            default: frappe.datetime.get_today()
+                        }
+                    ],
+                    primary_action_label: __("Create Journal Entry"),
+                    primary_action: function(values) {
+                        d.hide();
                         frm.call({
                             method: "make_journal_entry",
                             doc: frm.doc,
+                            args: { payment_date: values.payment_date },
                             callback: function(r) {
                                 if (r.message) {
                                     frappe.msgprint({
@@ -54,7 +66,8 @@ frappe.ui.form.on("Expense Entry", {
                             }
                         });
                     }
-                );
+                });
+                d.show();
             });
         }
     }
