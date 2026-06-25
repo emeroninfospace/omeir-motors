@@ -440,7 +440,7 @@
    "fieldname": "vehicle_service_location",
    "fieldtype": "Select",
    "label": "Vehicle Service Location",
-   "options": "\nRUWAIS\nHABSHAN\nSHAH\nAGENCY\nON ROAD ASSISTANCE",
+   "options": "\nRUWAIS\nHABSHAN\nSHAH\nAGENCY\nROAD-SIDE ASSISTANCE",
    "reqd": 1
   },
   {
@@ -455,7 +455,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-23 09:21:48.477191",
+ "modified": "2026-06-25 09:35:48.695006",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
