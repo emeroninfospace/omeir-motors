@@ -398,6 +398,13 @@ frappe.ui.form.on('Sublet Items', {
         calculate_sublet_amount(frm, cdt, cdn);
         calculate_margin_rate(frm, cdt, cdn);
     },
+    sublet_margin_percent: function(frm, cdt, cdn) {
+        calculate_sublet_amount(frm, cdt, cdn);
+        calculate_margin_rate(frm, cdt, cdn);
+    },
+    sublet_details_remove: function(frm) {
+        calculate_sublet_totals(frm);
+    }
 });
     function calculate_row_duration(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
@@ -422,11 +429,11 @@ frappe.ui.form.on('Sublet Items', {
 }
 
 function calculate_margin_rate(frm) {
-    let margin = frm.sublet_margin || 0;
+    
 
     (frm.doc.sublet_details || []).forEach(row => {
         let base_rate = row.rate || 0;
-        let new_rate = base_rate * (1 + margin / 100);
+        let new_rate = base_rate * (1 + row.sublet_margin_percent / 100);
         frappe.model.set_value(row.doctype, row.name, 'margin_rate', new_rate);
     });
  calculate_sublet_totals(frm);
@@ -443,7 +450,7 @@ function calculate_sublet_amount(frm, cdt, cdn) {
 
     let qty = row.quantity || 0;
     let rate = row.rate || 0;
-    let margin = frm.sublet_margin || 0;
+    let margin = row.sublet_margin_percent || 0;
     console.log(margin);
 
     
