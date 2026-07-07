@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Job Order', {
     setup(frm) {
-        frm.ignore_doctypes_on_cancel_all = ["Technician Allocation", "Material Request", "Quotation", "Vehicle Log", "Sales Invoice", "Stock Entry"];
+        frm.ignore_doctypes_on_cancel_all = ["Technician Allocation", "Material Request", "Quotation", "Vehicle Log", "Sales Invoice", "Stock Entry", "Trip Sheet"];
         frm.set_query('item_code', 'service_item', function(doc, cdt, cdn) {
             return {
                 filters: {

@@ -45,6 +45,7 @@ class JobOrder(Document):
         )
 
     def before_cancel(self):
+        self.ignore_linked_doctypes = ("Trip Sheet", "Job Order Child Table")
 
         def cancel_stock_entries(material_requests):
             if not material_requests:
