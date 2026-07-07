@@ -23,6 +23,9 @@ class JobOrder(Document):
         self.create_vehicle_log()
         self.validate_and_update_vehicle_odometer()
 
+    def on_cancel(self):
+        self.db_set("status", "Cancelled")
+
     def validate_and_update_vehicle_odometer(self):
         odo = frappe.db.get_single_value("Binomeir Settings", "odometer_validate")
 
