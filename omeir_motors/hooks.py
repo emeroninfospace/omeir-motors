@@ -46,7 +46,8 @@ app_license = "mit"
 doctype_js = {"Quotation" : "public/js/quotation.js",
               "Sales Invoice": "public/js/sales_invoice.js",
               "Purchase Receipt": "public/js/purchase_receipt.js",
-              "Purchase Order": "public/js/purchase_order.js"}
+              "Purchase Order": "public/js/purchase_order.js",
+              "Expense Claim": "public/js/expense_claim.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -135,6 +136,7 @@ doctype_js = {"Quotation" : "public/js/quotation.js",
 override_doctype_class = {
 	# "Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest",
     "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice",
+    "Expense Claim": "omeir_motors.overrides.expense_claim.CustomExpenseClaim",
 }
 
 # Document Events
