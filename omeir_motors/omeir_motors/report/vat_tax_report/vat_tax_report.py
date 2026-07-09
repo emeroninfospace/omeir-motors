@@ -102,7 +102,7 @@ def get_data(filters):
 
         query = (
             frappe.qb.from_(ec)
-            .left_join(ect).on(ec.name == ect.parent)
+            .inner_join(ect).on(ec.name == ect.parent)
             .select(
                 ec.name.as_("voucher_no"),
                 frappe.qb.terms.ValueWrapper("Expense Claim").as_("transaction_type"),
@@ -111,10 +111,11 @@ def get_data(filters):
                 ec.total_claimed_amount.as_("net_total"),
                 ect.tax_amount.as_("tax_amount"),
                 ect.rate.as_("tax_rate"),
-                frappe.qb.terms.ValueWrapper(None).as_("tax_account"),
+                ect.account_head.as_("tax_account"),
                 ec.grand_total,
             )
             .where(ec.docstatus == 1)
+            .where(ect.account_head == "VAT 5% - BOMC")
         )
 
         if filters.get("from_date"):
@@ -132,7 +133,7 @@ def get_data(filters):
 
         query = (
             frappe.qb.from_(sci)
-            .left_join(scit).on(sci.name == scit.parent)
+            .inner_join(scit).on(sci.name == scit.parent)
             .select(
                 sci.name.as_("voucher_no"),
                 frappe.qb.terms.ValueWrapper("Subcontract Invoice").as_("transaction_type"),
@@ -141,10 +142,11 @@ def get_data(filters):
                 sci.total_amount.as_("net_total"),
                 scit.tax_amount.as_("tax_amount"),
                 scit.rate.as_("tax_rate"),
-                frappe.qb.terms.ValueWrapper(None).as_("tax_account"),
+                scit.account_head.as_("tax_account"),
                 sci.grand_total,
             )
             .where(sci.docstatus == 1)
+            .where(scit.account_head == "VAT 5% - BOMC")
         )
 
         if filters.get("from_date"):
@@ -233,10 +235,7 @@ def get_data(filters):
 # ---------------------------------------------------------
 
 def get_columns(filters):
-    transaction_type = filters.get("transaction_type", "All")
-    hide_tax_account = transaction_type in ["Expense Claim", "Subcontract Invoice"]
-
-    columns = [
+    return [
         {"label": _("Transaction Type"), "fieldname": "transaction_type", "width": 130},
         {
             "label": _("Voucher No"),
@@ -248,24 +247,17 @@ def get_columns(filters):
         {"label": _("Posting Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
         {"label": _("Party"), "fieldname": "party_name", "width": 150},
         {"label": _("Net Amount"), "fieldname": "net_total", "fieldtype": "Currency", "width": 120},
-    ]
-
-    if not hide_tax_account:
-        columns.append({
+        {
             "label": _("Tax Account"),
             "fieldname": "tax_account",
             "fieldtype": "Link",
             "options": "Account",
             "width": 150,
-        })
-
-    columns += [
+        },
         {"label": _("VAT %"), "fieldname": "tax_rate", "fieldtype": "Float", "width": 80},
         {"label": _("VAT Amount"), "fieldname": "tax_amount", "fieldtype": "Currency", "width": 120},
         {"label": _("Grand Total"), "fieldname": "grand_total", "fieldtype": "Currency", "width": 120},
     ]
-
-    return columns
 
 
 # ---------------------------------------------------------
