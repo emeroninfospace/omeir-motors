@@ -156,7 +156,13 @@ doc_events = {
         "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
     },
     "Purchase Order": {
-        "validate": "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref"
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref",
+            "omeir_motors.omeir_motors.api.purchase_order.validate_item_rate",
+        ]
+    },
+    "Purchase Invoice": {
+        "validate": "omeir_motors.omeir_motors.api.purchase_invoice.validate_item_rate"
     },
     "Purchase Receipt": {
         "validate": "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref"

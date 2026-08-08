@@ -120,6 +120,18 @@ def get_columns():
 			"fieldtype": "Date",
 			"width": 130,
 		},
+		{
+			"label": _("Job Card Item Total Amount"),
+			"fieldname": "job_card_item_total",
+			"fieldtype": "Currency",
+			"width": 180,
+		},
+		{
+			"label": _("Sublet Total Amount"),
+			"fieldname": "sublet_total",
+			"fieldtype": "Currency",
+			"width": 180,
+		},
 	]
 
 
@@ -145,11 +157,15 @@ def get_data(filters):
 			si.custom_payment_type,
 			si.custom_invoice_type,
 			si.custom_service_notification,
-			si.due_date
+			si.due_date,
+			jo.total_amount AS job_card_item_total,
+			jo.total_am_sub AS sublet_total
 		FROM
 			`tabSales Invoice` si
 		LEFT JOIN
 			`tabUser` u ON u.name = si.owner
+		LEFT JOIN
+			`tabJob Order` jo ON jo.name = si.custom_job_order
 		WHERE
 			si.docstatus = 1
 			{conditions}
