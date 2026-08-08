@@ -71,7 +71,8 @@ class ExpenseEntry(Document):
                 "voucher_no": row.voucher_no,
                 "trn": row.trn,
                 "custom_supplier_name": row.supplier_name,
-                "project": row.project
+                "project": row.project,
+                "cost_center": row.cost_center
             })
             total_debit += debit_amount
 

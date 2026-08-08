@@ -447,7 +447,7 @@
    "fieldname": "bus_type",
    "fieldtype": "Select",
    "label": "Bus Type",
-   "options": "\nSCHOOL BUS\nSTAFF BUS\nADNOC BUS\nELECTRIC BUS",
+   "options": "\nSCHOOL BUS\nSTAFF BUS\nADNOC BUS\nELECTRIC BUS\nOTHERS",
    "reqd": 1
   }
  ],
@@ -455,7 +455,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-30 11:27:11.079518",
+ "modified": "2026-07-17 15:18:52.690976",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
