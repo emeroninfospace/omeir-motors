@@ -17,17 +17,17 @@ def validate_item_rate(doc, method=None):
 		)
 		if standard_rate is None:
 			continue
-		if item.rate != standard_rate:
+		if item.rate > standard_rate:
 			frappe.throw(
 				_(
-					"You are not allowed to change the rate of item {0}. "
-					"Expected standard buying rate: {1}, but got: {2}."
+					"You are not allowed to increase the rate of item {0}. "
+					"Standard buying rate is {1}, but got: {2}."
 				).format(
 					frappe.bold(item.item_code),
 					frappe.bold(standard_rate),
 					frappe.bold(item.rate),
 				),
-				title=_("Rate Change Not Permitted"),
+				title=_("Rate Increase Not Permitted"),
 			)
 
 
