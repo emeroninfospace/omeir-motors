@@ -96,6 +96,70 @@ def get_data(filters):
 
         data.extend(query.run(as_dict=True))
 
+    if transaction_type in ["All", "Expense Claim"]:
+        ec = frappe.qb.DocType("Expense Claim")
+        ect = frappe.qb.DocType("Expense Taxes and Charges")
+
+        query = (
+            frappe.qb.from_(ec)
+            .inner_join(ect).on(ec.name == ect.parent)
+            .select(
+                ec.name.as_("voucher_no"),
+                frappe.qb.terms.ValueWrapper("Expense Claim").as_("transaction_type"),
+                ec.posting_date,
+                frappe.qb.terms.ValueWrapper(None).as_("party_name"),
+                ec.total_claimed_amount.as_("net_total"),
+                ect.tax_amount.as_("tax_amount"),
+                ect.rate.as_("tax_rate"),
+                ect.account_head.as_("tax_account"),
+                ec.grand_total,
+            )
+            .where(ec.docstatus == 1)
+            .where(ect.account_head == "VAT 5% - BOMC")
+        )
+
+        if filters.get("from_date"):
+            query = query.where(ec.posting_date >= filters.get("from_date"))
+        if filters.get("to_date"):
+            query = query.where(ec.posting_date <= filters.get("to_date"))
+        if filters.get("company"):
+            query = query.where(ec.company == filters.get("company"))
+
+        data.extend(query.run(as_dict=True))
+
+    if transaction_type in ["All", "Subcontract Invoice"]:
+        sci = frappe.qb.DocType("Subcontract Invoice")
+        scit = frappe.qb.DocType("Purchase Taxes and Charges")
+
+        query = (
+            frappe.qb.from_(sci)
+            .inner_join(scit).on(sci.name == scit.parent)
+            .select(
+                sci.name.as_("voucher_no"),
+                frappe.qb.terms.ValueWrapper("Subcontract Invoice").as_("transaction_type"),
+                sci.transaction_date.as_("posting_date"),
+                frappe.qb.terms.ValueWrapper(None).as_("party_name"),
+                sci.total_amount.as_("net_total"),
+                scit.tax_amount.as_("tax_amount"),
+                scit.rate.as_("tax_rate"),
+                scit.account_head.as_("tax_account"),
+                sci.grand_total,
+            )
+            .where(sci.docstatus == 1)
+            .where(scit.account_head == "VAT 5% - BOMC")
+        )
+
+        if filters.get("from_date"):
+            query = query.where(sci.transaction_date >= filters.get("from_date"))
+        if filters.get("to_date"):
+            query = query.where(sci.transaction_date <= filters.get("to_date"))
+        if filters.get("company"):
+            query = query.where(sci.company == filters.get("company"))
+        if filters.get("supplier"):
+            query = query.where(sci.supplier == filters.get("supplier"))
+
+        data.extend(query.run(as_dict=True))
+
     # Expense Entry Data
     if transaction_type in ["All", "Expense Entry"]:
         ee = frappe.qb.DocType("Expense Entry")
@@ -255,7 +319,7 @@ def get_summary(data, filters):
             {"label": _("Total Grand Amount"), "value": total_grand, "datatype": "Currency"},
         ]
 
-    # ---------------- EXPENSE ----------------
+    # ---------------- EXPENSE ENTRY ----------------
     elif transaction_type == "Expense Entry":
         total_net = sum(
             flt(row.get("net_total", 0))
@@ -279,6 +343,52 @@ def get_summary(data, filters):
             {"label": _("Total Expense with VAT"), "value": total_grand, "datatype": "Currency"},
         ]
 
+    elif transaction_type == "Expense Claim":
+        total_net = sum(
+            flt(row.get("net_total", 0))
+            for row in data
+            if row.get("transaction_type") == "Expense Claim"
+        )
+        total_tax = sum(
+            flt(row.get("tax_amount", 0))
+            for row in data
+            if row.get("transaction_type") == "Expense Claim"
+        )
+        total_grand = sum(
+            flt(row.get("grand_total", 0))
+            for row in data
+            if row.get("transaction_type") == "Expense Claim"
+        )
+
+        return [
+            {"label": _("Total Claimed Amount"), "value": total_net, "datatype": "Currency"},
+            {"label": _("Total Claim VAT"), "value": total_tax, "datatype": "Currency"},
+            {"label": _("Total Claim with VAT"), "value": total_grand, "datatype": "Currency"},
+        ]
+
+    elif transaction_type == "Subcontract Invoice":
+        total_net = sum(
+            flt(row.get("net_total", 0))
+            for row in data
+            if row.get("transaction_type") == "Subcontract Invoice"
+        )
+        total_tax = sum(
+            flt(row.get("tax_amount", 0))
+            for row in data
+            if row.get("transaction_type") == "Subcontract Invoice"
+        )
+        total_grand = sum(
+            flt(row.get("grand_total", 0))
+            for row in data
+            if row.get("transaction_type") == "Subcontract Invoice"
+        )
+
+        return [
+            {"label": _("Total Subcontract Amount"), "value": total_net, "datatype": "Currency"},
+            {"label": _("Total Subcontract VAT"), "value": total_tax, "datatype": "Currency"},
+            {"label": _("Total Subcontract with VAT"), "value": total_grand, "datatype": "Currency"},
+        ]
+
     # ---------------- ALL ----------------
     else:
         sales_tax = sum(
@@ -291,17 +401,27 @@ def get_summary(data, filters):
             for row in data
             if row.get("transaction_type") == "Purchase Invoice"
         )
+        subcontract_tax = sum(
+            flt(row.get("tax_amount", 0))
+            for row in data
+            if row.get("transaction_type") == "Subcontract Invoice"
+        )
         expense_tax = sum(
             flt(row.get("tax_amount", 0))
             for row in data
             if row.get("transaction_type") == "Expense Entry"
         )
+        expense_claim_tax = sum(
+            flt(row.get("tax_amount", 0))
+            for row in data
+            if row.get("transaction_type") == "Expense Claim"
+        )
 
-        vat_payable = sales_tax - (purchase_tax + expense_tax)
+        vat_payable = sales_tax - (purchase_tax + subcontract_tax + expense_tax + expense_claim_tax)
 
         return [
             {"label": _("VAT on Sales"), "value": sales_tax, "datatype": "Currency"},
-            {"label": _("VAT on Purchase"), "value": purchase_tax, "datatype": "Currency"},
-            {"label": _("VAT on Expenses"), "value": expense_tax, "datatype": "Currency"},
+            {"label": _("VAT on Purchase"), "value": purchase_tax + subcontract_tax, "datatype": "Currency"},
+            {"label": _("VAT on Expenses"), "value": expense_tax + expense_claim_tax, "datatype": "Currency"},
             {"label": _("VAT Payable"), "value": vat_payable, "datatype": "Currency"},
         ]

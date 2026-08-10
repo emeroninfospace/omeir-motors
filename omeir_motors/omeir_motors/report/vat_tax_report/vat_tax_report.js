@@ -30,7 +30,7 @@ frappe.query_reports["Vat Tax Report"] = {
             "fieldname": "transaction_type",
             "label": __("Transaction Type"),
             "fieldtype": "Select",
-            "options": ["All", "Sales Invoice", "Purchase Invoice", "Expense Entry"],
+            "options": ["All", "Sales Invoice", "Purchase Invoice", "Expense Claim", "Subcontract Invoice", "Expense Entry"],
             "default": "All",
             "reqd": 1
         },
@@ -46,7 +46,7 @@ frappe.query_reports["Vat Tax Report"] = {
             "label": __("Supplier"),
             "fieldtype": "Link",
             "options": "Supplier",
-            "depends_on": "eval:doc.transaction_type == 'Purchase Invoice' || doc.transaction_type == 'All' || doc.transaction_type == 'Expense Entry'"
+            "depends_on": "eval:doc.transaction_type == 'Purchase Invoice' || doc.transaction_type == 'All' || doc.transaction_type == 'Expense Entry' || doc.transaction_type == 'Subcontract Invoice'"
         },
     ]
 };
