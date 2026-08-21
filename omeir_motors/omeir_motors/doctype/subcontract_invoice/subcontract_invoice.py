@@ -169,10 +169,72 @@ class SubcontractInvoice(Document):
 
 @frappe.whitelist()
 def make_payment_entry(invoice, mode_of_payment, amount, posting_date=None):
-    invoice_doc = frappe.get_doc("Subcontract Invoice", invoice)
+    return _create_payment_journal_entry(
+        [{"invoice": invoice, "amount": amount}], mode_of_payment, posting_date
+    )
 
-    company = invoice_doc.company
-    project = invoice_doc.project
+
+@frappe.whitelist()
+def make_payment_entry_multi(invoices, mode_of_payment, posting_date=None):
+    """
+    invoices: list (or JSON string) of {"invoice": <name>, "amount": <float>}
+    Pays several Subcontract Invoices in a single Journal Entry.
+    """
+    if isinstance(invoices, str):
+        invoices = frappe.parse_json(invoices)
+
+    return _create_payment_journal_entry(invoices, mode_of_payment, posting_date)
+
+
+@frappe.whitelist()
+def get_outstanding_invoices(supplier, company=None):
+    filters = {
+        "supplier": supplier,
+        "docstatus": 1,
+        "status": ["in", ["Unpaid", "Partially Paid"]]
+    }
+    if company:
+        filters["company"] = company
+
+    invoices = frappe.get_all(
+        "Subcontract Invoice",
+        filters=filters,
+        fields=["name", "transaction_date", "company", "grand_total", "paid_amount", "project", "cost_center"],
+        order_by="transaction_date asc"
+    )
+
+    for inv in invoices:
+        inv["outstanding_amount"] = flt(flt(inv.grand_total, 2) - flt(inv.paid_amount, 2), 2)
+
+    return invoices
+
+
+def _create_payment_journal_entry(allocations, mode_of_payment, posting_date=None):
+    if not allocations:
+        frappe.throw("Select at least one invoice to pay")
+
+    seen = set()
+    invoice_docs = {}
+    company = None
+
+    for row in allocations:
+        invoice_name = row["invoice"]
+
+        if invoice_name in seen:
+            frappe.throw(f"Invoice {invoice_name} is listed more than once")
+        seen.add(invoice_name)
+
+        invoice_doc = frappe.get_doc("Subcontract Invoice", invoice_name)
+
+        if invoice_doc.docstatus != 1:
+            frappe.throw(f"{invoice_name} is not a submitted invoice")
+
+        if company is None:
+            company = invoice_doc.company
+        elif invoice_doc.company != company:
+            frappe.throw("All invoices in a single payment must belong to the same company")
+
+        invoice_docs[invoice_name] = invoice_doc
 
     mop = frappe.get_doc("Mode of Payment", mode_of_payment)
 
@@ -187,78 +249,97 @@ def make_payment_entry(invoice, mode_of_payment, amount, posting_date=None):
 
     payable_account = frappe.get_value("Company", company, "default_payable_account")
 
-    amount = frappe.utils.flt(amount, 2)
-
-    paid_amount = frappe.utils.flt(invoice_doc.paid_amount or 0, 2)
-    grand_total = frappe.utils.flt(invoice_doc.grand_total, 2)
-
-    outstanding = flt(grand_total - paid_amount, 2)
-
-    if outstanding <= 0:
-        frappe.throw("Invoice already fully paid")
-
-    if amount > outstanding:
-        frappe.throw(f"Amount cannot exceed outstanding amount: {outstanding}")
-
     je = frappe.new_doc("Journal Entry")
     je.voucher_type = "Journal Entry"
     je.company = company
     je.posting_date = getdate(posting_date) if posting_date else frappe.utils.nowdate()
-    je.cheque_no = invoice_doc.name
-    je.cheque_date = invoice_doc.transaction_date
 
-    je.append("accounts", {
-        "account": payable_account,
-        "debit_in_account_currency": amount,
-        "party_type": "Supplier",
-        "party": invoice_doc.supplier,
-        "project": project,
-        "cost_center": invoice_doc.cost_center
-    })
+    total_amount = 0
+    row_amounts = {}
+
+    for row in allocations:
+        invoice_doc = invoice_docs[row["invoice"]]
+        amount = flt(row["amount"], 2)
+
+        if amount <= 0:
+            frappe.throw(f"Amount for {invoice_doc.name} must be greater than zero")
+
+        paid_amount = flt(invoice_doc.paid_amount or 0, 2)
+        grand_total = flt(invoice_doc.grand_total, 2)
+        outstanding = flt(grand_total - paid_amount, 2)
+
+        if outstanding <= 0:
+            frappe.throw(f"{invoice_doc.name} is already fully paid")
+
+        if amount > outstanding:
+            frappe.throw(f"Amount for {invoice_doc.name} cannot exceed outstanding amount: {outstanding}")
+
+        # reference_detail_no is a free-text field (no fixed options like reference_type),
+        # used here purely as a unique marker to find this row's GL/Payment Ledger entries
+        # afterwards without ambiguity when several invoices share the same supplier.
+        je.append("accounts", {
+            "account": payable_account,
+            "debit_in_account_currency": amount,
+            "party_type": "Supplier",
+            "party": invoice_doc.supplier,
+            "project": invoice_doc.project,
+            "cost_center": invoice_doc.cost_center,
+            "reference_detail_no": invoice_doc.name
+        })
+
+        total_amount += amount
+        row_amounts[invoice_doc.name] = amount
+
+    if len(row_amounts) == 1:
+        only_invoice = invoice_docs[next(iter(row_amounts))]
+        je.cheque_no = only_invoice.name
+        je.cheque_date = only_invoice.transaction_date
+    else:
+        je.user_remark = "Payment against Subcontract Invoices: " + ", ".join(row_amounts.keys())
 
     je.append("accounts", {
         "account": default_account,
-        "credit_in_account_currency": amount,
-        "project": project,
-        "cost_center": invoice_doc.cost_center
+        "credit_in_account_currency": flt(total_amount, 2)
     })
 
     je.insert(ignore_permissions=True)
     je.submit()
 
-    frappe.db.sql("""
-        UPDATE `tabGL Entry`
-        SET against_voucher_type = 'Subcontract Invoice',
-            against_voucher = %s
-        WHERE voucher_type = 'Journal Entry'
-          AND voucher_no = %s
-          AND party_type = 'Supplier'
-          AND party = %s
-    """, (invoice, je.name, invoice_doc.supplier))
+    for invoice_name, amount in row_amounts.items():
+        invoice_doc = invoice_docs[invoice_name]
 
-    frappe.db.sql("""
-        UPDATE `tabPayment Ledger Entry`
-        SET against_voucher_type = 'Subcontract Invoice',
-            against_voucher_no = %s
-        WHERE voucher_type = 'Journal Entry'
-          AND voucher_no = %s
-          AND party_type = 'Supplier'
-          AND party = %s
-    """, (invoice, je.name, invoice_doc.supplier))
+        frappe.db.sql("""
+            UPDATE `tabGL Entry`
+            SET against_voucher_type = 'Subcontract Invoice',
+                against_voucher = %s
+            WHERE voucher_type = 'Journal Entry'
+              AND voucher_no = %s
+              AND voucher_detail_no = %s
+        """, (invoice_name, je.name, invoice_name))
 
-    paid_amount = flt(paid_amount + amount, 2)
+        frappe.db.sql("""
+            UPDATE `tabPayment Ledger Entry`
+            SET against_voucher_type = 'Subcontract Invoice',
+                against_voucher_no = %s
+            WHERE voucher_type = 'Journal Entry'
+              AND voucher_no = %s
+              AND voucher_detail_no = %s
+        """, (invoice_name, je.name, invoice_name))
 
-    frappe.db.set_value("Subcontract Invoice", invoice, "paid_amount", paid_amount)
+        paid_amount = flt(flt(invoice_doc.paid_amount or 0, 2) + amount, 2)
 
-    invoice_doc.reload()
-    invoice_doc.update_payment_status()
+        frappe.db.set_value("Subcontract Invoice", invoice_name, "paid_amount", paid_amount)
 
-    if paid_amount >= grand_total:
+        invoice_doc.reload()
+        invoice_doc.update_payment_status()
+
+        grand_total = flt(invoice_doc.grand_total, 2)
+
         if invoice_doc.subcontract_work_order:
-            frappe.db.set_value("Subcontract Work Order", invoice_doc.subcontract_work_order, "status", "Paid")
-    else:
-        if invoice_doc.subcontract_work_order:
-            frappe.db.set_value("Subcontract Work Order", invoice_doc.subcontract_work_order, "status", "Partially Billed")
+            if paid_amount >= grand_total:
+                frappe.db.set_value("Subcontract Work Order", invoice_doc.subcontract_work_order, "status", "Paid")
+            else:
+                frappe.db.set_value("Subcontract Work Order", invoice_doc.subcontract_work_order, "status", "Partially Billed")
 
     return je.name
 
