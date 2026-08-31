@@ -134,7 +134,7 @@ doctype_js = {"Quotation" : "public/js/quotation.js",
 
 override_doctype_class = {
 	# "Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest",
-    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice",
+    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice"
 }
 
 # Document Events
@@ -160,10 +160,16 @@ doc_events = {
         ]
     },
     "Purchase Invoice": {
-        "validate": "omeir_motors.omeir_motors.api.purchase_invoice.validate_item_rate"
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_invoice.validate_item_rate",
+            "omeir_motors.omeir_motors.api.purchase_invoice.validate_bill_date",
+        ]
     },
     "Purchase Receipt": {
-        "validate": "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref"
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref",
+            "omeir_motors.omeir_motors.api.purchase_receipt.validate_invoice_date",
+        ]
     },
     "Journal Entry": {
         "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel"
@@ -307,7 +313,7 @@ fixtures = [
     {
         "dt": "Property Setter",
         "filters": [
-            ["name", "in", ["Purchase Invoice-main-field_order"]]
+            ["name", "in", ["Purchase Invoice-main-field_order", "Payment Entry-posting_date-allow_on_submit"]]
         ]
     },
     {

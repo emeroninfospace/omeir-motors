@@ -4,6 +4,22 @@ from frappe.utils import get_link_to_form
 
 
 
+def validate_invoice_date(doc, method=None):
+	if not doc.custom_invoice_date:
+		return
+
+	if doc.custom_invoice_date != doc.posting_date:
+		frappe.throw(
+			_(
+				"Supplier Invoice Date ({0}) and Posting Date ({1}) must be the same."
+			).format(
+				frappe.bold(frappe.utils.formatdate(doc.custom_invoice_date)),
+				frappe.bold(frappe.utils.formatdate(doc.posting_date)),
+			),
+			title=_("Date Mismatch"),
+		)
+
+
 def validate_duplicate_receipt_ref(doc, method=None):
 	existing_po = get_duplicate_purchase_receipt(
 		doc.custom_invoice_no,
