@@ -28,3 +28,20 @@ def validate_item_rate(doc, method=None):
 				),
 				title=_("Rate Increase Not Permitted"),
 			)
+
+
+def validate_bill_date(doc, method=None):
+	if not doc.bill_date:
+		return
+
+	if doc.bill_date != doc.posting_date:
+		frappe.throw(
+			_(
+				"Supplier Invoice Date ({0}) and Posting Date ({1}) must be the same."
+			).format(
+				frappe.bold(frappe.utils.formatdate(doc.bill_date)),
+				frappe.bold(frappe.utils.formatdate(doc.posting_date)),
+			),
+			title=_("Date Mismatch"),
+		)
+
