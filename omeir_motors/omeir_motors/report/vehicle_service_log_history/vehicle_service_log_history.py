@@ -16,6 +16,20 @@ def execute(filters=None):
 def get_columns():
     return [
         {
+            "label": _("Customer"),
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "options": "Customer",
+            "width": 160,
+        },
+        {
+            "label": _("Vehicle"),
+            "fieldname": "vehicle",
+            "fieldtype": "Link",
+            "options": "Vehicle",
+            "width": 110,
+        },
+        {
             "label": _("Date"),
             "fieldname": "posting_date",
             "fieldtype": "Date",
@@ -88,6 +102,9 @@ def get_columns():
 def get_conditions(filters):
     conditions = ["jo.docstatus < 2"]
 
+    if filters.get("customer"):
+        conditions.append("jo.customer = %(customer)s")
+
     if filters.get("vehicle"):
         conditions.append("jo.vehicle = %(vehicle)s")
 
@@ -107,15 +124,14 @@ def get_conditions(filters):
 
 
 def get_data(filters):
-    if not filters.get("vehicle"):
-        frappe.throw(_("Please select a Vehicle to view its service log history."))
-
     conditions = get_conditions(filters)
 
     rows = frappe.db.sql(
         """
         SELECT
             jo.name                                           AS job_card,
+            jo.customer                                       AS customer,
+            jo.vehicle                                        AS vehicle,
             jo.expected_completion_date                       AS posting_date,
             jo.odometer_value_last                            AS odometer,
             jo.job_type                                       AS service_type,
@@ -154,9 +170,10 @@ def get_data(filters):
 # ---------------------------------------------------------------------------
 
 @frappe.whitelist()
-def get_print_html(vehicle, from_date=None, to_date=None, job_type=None, status=None):
+def get_print_html(vehicle=None, customer=None, from_date=None, to_date=None, job_type=None, status=None):
     filters = frappe._dict(
-        vehicle=vehicle,
+        vehicle=vehicle or None,
+        customer=customer or None,
         from_date=from_date or None,
         to_date=to_date or None,
         job_type=job_type or None,
@@ -164,40 +181,42 @@ def get_print_html(vehicle, from_date=None, to_date=None, job_type=None, status=
     )
 
     rows = get_data(filters)
-    vehicle_doc = frappe.get_doc("Vehicle", vehicle)
 
-    # Latest job order for this vehicle carries the freshest customer / contact info
+    vehicle_doc = frappe.get_doc("Vehicle", vehicle) if vehicle else frappe._dict()
+
+    # Most recent job order matching the filters carries the freshest customer / contact info
+    jo_filters = {"docstatus": ("<", 2)}
+    if vehicle:
+        jo_filters["vehicle"] = vehicle
+    if customer:
+        jo_filters["customer"] = customer
+
     latest = frappe.db.get_value(
         "Job Order",
-        {"vehicle": vehicle, "docstatus": ("<", 2)},
+        jo_filters,
         ["customer", "contact_no", "make", "model", "year", "fuel_type", "chasis_number"],
         order_by="expected_completion_date desc",
         as_dict=True,
     ) or frappe._dict()
 
-    customer_name = None
-    if latest.get("customer"):
-        customer_name = frappe.db.get_value("Customer", latest.customer, "customer_name") or latest.customer
-    elif vehicle_doc.get("custom_customer"):
-        customer_name = frappe.db.get_value("Customer", vehicle_doc.custom_customer, "customer_name") or vehicle_doc.custom_customer
-
-    company = frappe.defaults.get_user_default("Company") or frappe.db.get_single_value(
-        "Global Defaults", "default_company"
-    )
-    company_doc = frappe.get_doc("Company", company) if company else frappe._dict()
+    customer_id = customer or latest.get("customer") or vehicle_doc.get("custom_customer")
+    customer_name = ""
+    if customer_id:
+        customer_name = frappe.db.get_value("Customer", customer_id, "customer_name") or customer_id
 
     context = {
         "company_name": "BIN OMEIR MOTORS COMPANY",
-        "customer_name": customer_name or "",
+        "customer_name": customer_name,
         "contact_no": latest.get("contact_no") or "",
         "current_odometer": vehicle_doc.get("last_odometer") or "",
-        "vehicle_reg_no": vehicle_doc.get("license_plate") or vehicle_doc.name,
-        "chassis_no": vehicle_doc.get("chassis_no") or latest.get("chasis_number") or "",
+        "vehicle_reg_no": (vehicle_doc.get("license_plate") or vehicle_doc.get("name") or "") if vehicle else "",
+        "chassis_no": (vehicle_doc.get("chassis_no") or latest.get("chasis_number") or "") if vehicle else "",
         "engine_no": vehicle_doc.get("custom_engine_no") or "",
-        "make": vehicle_doc.get("make") or latest.get("make") or "",
-        "model": vehicle_doc.get("custom_custom_model") or vehicle_doc.get("model") or latest.get("model") or "",
-        "year": vehicle_doc.get("custom_year") or latest.get("year") or "",
-        "fuel_type": vehicle_doc.get("fuel_type") or latest.get("fuel_type") or "",
+        "make": (vehicle_doc.get("make") or latest.get("make") or "") if vehicle else "",
+        "model": (vehicle_doc.get("custom_custom_model") or vehicle_doc.get("model") or latest.get("model") or "") if vehicle else "",
+        "year": (vehicle_doc.get("custom_year") or latest.get("year") or "") if vehicle else "",
+        "fuel_type": (vehicle_doc.get("fuel_type") or latest.get("fuel_type") or "") if vehicle else "",
+        "show_vehicle_col": not vehicle,
         "rows": rows,
         "formatdate": formatdate,
         "flt": flt,
@@ -249,12 +268,14 @@ PRINT_TEMPLATE = """
         </tr>
     </table>
 
+    {% set label_span = 7 if show_vehicle_col else 6 %}
+    {% set total_cols = 11 if show_vehicle_col else 10 %}
     <table class="log">
         <thead>
             <tr>
                 <th style="width:32px;">S.No</th>
+                {% if show_vehicle_col %}<th style="width:80px;">Vehicle</th>{% endif %}
                 <th style="width:70px;">Date</th>
-                <th style="width:70px;">Odometer<br>(km/mi)</th>
                 <th style="width:80px;">Job Card No.</th>
                 <th style="width:75px;">Service Type</th>
                 <th>Work Description</th>
@@ -273,8 +294,8 @@ PRINT_TEMPLATE = """
             {% set ns.total = ns.total + flt(r.total_cost) %}
             <tr>
                 <td class="c">{{ loop.index }}</td>
+                {% if show_vehicle_col %}<td>{{ r.vehicle or "" }}</td>{% endif %}
                 <td class="c">{{ formatdate(r.posting_date, "dd-MM-yyyy") if r.posting_date else "" }}</td>
-                <td class="num">{{ r.odometer or "" }}</td>
                 <td>{{ r.job_card }}</td>
                 <td>{{ r.service_type or "" }}</td>
                 <td>{{ r.work_description or "" }}</td>
@@ -287,14 +308,14 @@ PRINT_TEMPLATE = """
             {% endfor %}
             {% if rows %}
             <tr class="tot">
-                <td class="c" colspan="7">TOTAL</td>
+                <td class="c" colspan="{{ label_span }}">TOTAL</td>
                 <td class="num">{{ "%.2f"|format(ns.labor) }}</td>
                 <td class="num">{{ "%.2f"|format(ns.parts) }}</td>
                 <td class="num">{{ "%.2f"|format(ns.total) }}</td>
                 <td></td>
             </tr>
             {% else %}
-            <tr><td class="c" colspan="11">No job orders found for this vehicle.</td></tr>
+            <tr><td class="c" colspan="{{ total_cols }}">No job orders found for the selected filters.</td></tr>
             {% endif %}
         </tbody>
     </table>
