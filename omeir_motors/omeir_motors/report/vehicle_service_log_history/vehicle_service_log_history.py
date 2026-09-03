@@ -187,7 +187,7 @@ def get_print_html(vehicle, from_date=None, to_date=None, job_type=None, status=
     company_doc = frappe.get_doc("Company", company) if company else frappe._dict()
 
     context = {
-        "company_name": company_doc.get("company_name") or "[ DEALERSHIP NAME ]",
+        "company_name": "BIN OMEIR MOTORS COMPANY",
         "customer_name": customer_name or "",
         "contact_no": latest.get("contact_no") or "",
         "current_odometer": vehicle_doc.get("last_odometer") or "",
@@ -227,7 +227,7 @@ PRINT_TEMPLATE = """
 </style>
 
 <div class="vslh">
-    <h1>{{ company_name }}</h1>
+    <h1>BIN OMEIR MOTORS COMPANY</h1>
     <div class="sub">Address Line &bull; Phone &bull; Email &bull; Service Center</div>
     <h2>VEHICLE SERVICE LOG HISTORY</h2>
 
