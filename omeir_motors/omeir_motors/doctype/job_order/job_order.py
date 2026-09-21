@@ -681,6 +681,7 @@ def make_subcontract(name):
         for sublet in order.sublet_details:
             subcontract.append("items", {
                 "item_code": sublet.item_code,
+                "description": sublet.description,
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
                 "rate": sublet.rate,
