@@ -171,6 +171,41 @@ class JobOrder(Document):
                     f"Row {row.idx}: Rate cannot be less than {min_rate} "
                     f"(Cost {valuation_rate} + {margin}%)"
                 )
+    def validate_material_request_for_job_order(self):
+           
+            if not self.job_order_items:
+                return
+
+            material_requests = frappe.get_all(
+                "Material Request",
+                filters={
+                    "custom_job_order": self.name,
+                    "docstatus": ["!=", 2]
+                },
+                pluck="name"
+            )
+
+            if not material_requests:
+                frappe.throw(
+                    f"Please create a Material Transfer for Job Order {self.name} "
+                    f"before creating a Sales Invoice."
+                )
+
+            has_items = frappe.db.exists(
+                "Material Request Item",
+                {"parent": ["in", material_requests]}
+            )
+
+            if not has_items:
+                frappe.throw(
+                    f"The Material Transfer linked to Job Order {self.name} has no items. "
+                    f"Please add items to the Material Transfer before creating a Sales Invoice."
+                )
+
+@frappe.whitelist()
+def validate_before_sales_invoice(job_order):
+    doc = frappe.get_doc("Job Order", job_order)
+    doc.validate_material_request_for_job_order()
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    

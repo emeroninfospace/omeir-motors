@@ -98,38 +98,45 @@ frappe.ui.form.on('Job Order', {
 
     frm.add_custom_button('Sales Invoice', () => {
 
-        // Re-fetch fresh data at click time to avoid stale results
-        frappe.db.get_list('Sales Invoice', {
-            filters: { custom_job_order: frm.doc.name },
-            fields: ['name', 'docstatus']
-        }).then((fresh_invoices) => {
+    frappe.db.get_list('Sales Invoice', {
+        filters: { custom_job_order: frm.doc.name },
+        fields: ['name', 'docstatus']
+    }).then((fresh_invoices) => {
 
-            let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
+        let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
 
-            if (fresh_active.length >= 2) {
-                frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
-                return;
-            }
-
-            // ✅ REMOVED the draft check — allows 2nd invoice even if 1st is draft
-            // Only block if both slots are already filled (handled above)
-
-            frappe.call({
-                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
-                args: {
-                    source_name: frm.doc.name
-                },
-                callback: function(r) {
-                    if (!r.exc) {
-                        let doc = frappe.model.sync(r.message)[0];
-                        frappe.set_route('Form', doc.doctype, doc.name);
-                    }
+        if (fresh_active.length >= 2) {
+            frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
+            return;
+        }
+        frappe.call({
+            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.validate_before_sales_invoice',
+            args: {
+                job_order: frm.doc.name
+            },
+            callback: function(r) {
+                if (r.exc) {
+                    return; 
                 }
-            });
 
+                frappe.call({
+                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
+                    args: {
+                        source_name: frm.doc.name
+                    },
+                    callback: function(r2) {
+                        if (!r2.exc) {
+                            let doc = frappe.model.sync(r2.message)[0];
+                            frappe.set_route('Form', doc.doctype, doc.name);
+                        }
+                    }
+                });
+            }
         });
 
-    }, 'Create');
+    });
+
+}, 'Create');
 
     if (frm.doc.docstatus === 1) {
         frappe.db.get_list('Sales Invoice', {
