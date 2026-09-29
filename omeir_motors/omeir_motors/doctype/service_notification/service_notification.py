@@ -8,6 +8,8 @@ from frappe.utils import flt, nowdate
 
 
 class ServiceNotification(Document):
+    def before_save(self):
+        self.validate_rate_amount()
     def validate_rate_amount(self):
         if self.service_items:
             self.total_amount = sum(item.amount for item in self.service_items)
