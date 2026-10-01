@@ -34,6 +34,20 @@ class AllocationTests(unittest.TestCase):
 		with self.assertRaises(MappingError):
 			resolve_sublet("S", "WRONG", rows)
 
+	def test_document_row_inferred_match(self):
+		row = Doc(name="SUB1", item_code="SERVICE")
+		self.assertIs(resolve_sublet("SERVICE", None, [row]), row)
+
+	def test_document_row_explicit_match(self):
+		rows = [Doc(name="SUB1", item_code="SERVICE"), Doc(name="SUB2", item_code="SERVICE")]
+		self.assertIs(resolve_sublet("SERVICE", "SUB2", rows), rows[1])
+
+	def test_document_rows_reject_ambiguous_or_mismatched_links(self):
+		rows = [Doc(name="SUB1", item_code="SERVICE"), Doc(name="SUB2", item_code="SERVICE")]
+		for item_code, explicit in (("SERVICE", None), ("SERVICE", "MISSING"), ("OTHER", "SUB1")):
+			with self.subTest(item_code=item_code, explicit=explicit), self.assertRaises(MappingError):
+				resolve_sublet(item_code, explicit, rows)
+
 	def test_service_and_sublet_collision(self):
 		with self.assertRaises(MappingError):
 			resolve_sublet("S", None, [Row(name="A", item_code="S")], ["S"])
@@ -44,7 +58,7 @@ class MappingTests(unittest.TestCase):
 		frappe.db.reset_mock()
 		frappe.db.exists.return_value = False
 		frappe.get_cached_value.return_value = 0
-		self.sublet = Row(name="SUB1", item_code="SERVICE", quantity=1, uom="Nos")
+		self.sublet = Doc(name="SUB1", item_code="SERVICE", quantity=1, uom="Nos")
 		self.job = Doc(
 			name="JOB1",
 			company="C",
