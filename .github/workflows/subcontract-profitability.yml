@@ -1,0 +1,25 @@
+name: Subcontract profitability
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  allocation-and-standard-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v4
+        with:
+          repository: frappe/erpnext
+          ref: version-15
+          path: upstream-erpnext
+          sparse-checkout: erpnext/accounts/report/gross_profit
+      - name: Test mapping and upstream report calculations with database doubles
+        env:
+          UPSTREAM_GP_SOURCE: ${{ github.workspace }}/upstream-erpnext/erpnext/accounts/report/gross_profit/gross_profit.py
+        run: python -m unittest discover -s tests -v

@@ -14,7 +14,8 @@
   "amount",
   "job_order",
   "column_break_ppfy",
-  "item_name"
+  "item_name",
+  "job_order_sublet_row"
  ],
  "fields": [
   {
@@ -75,6 +76,13 @@
   {
    "fieldname": "column_break_ppfy",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "job_order_sublet_row",
+   "fieldtype": "Data",
+   "label": "Job Order Sublet Row",
+   "no_copy": 1,
+   "description": "Exact Sublet Items row ID for job-specific profitability. Populated when items are fetched from a Job Order."
   }
  ],
  "grid_page_length": 50,
