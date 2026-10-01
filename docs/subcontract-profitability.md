@@ -17,7 +17,12 @@ Invoices, Stock Ledger Entries, Journal Entries, expenses or payable entries.
 
 - Exact `Sublet Items.name` identifiers travel from Job Order to Subcontract Work
   Item, Subcontract Invoice Item and Sales Invoice Item. Manually entered rows
-  infer a link only when the job/item mapping is unique. Same-item sublet rows
+  infer a link when the job/item mapping is unique. Repeated item codes can also
+  match uniquely by normalized full description, equal quantity, and the
+  corresponding rate (vendor rate for costs; company-currency sales base rate
+  against Job Order margin rate for sales), with matching sales UOM. HTML tags,
+  letter case and whitespace are normalized; fuzzy matching and row-order
+  matching are never used. Same-item sublet rows
   retain separate costs when selected explicitly.
 - For a mapped job sublet row, Buying Amount = sum of submitted linked
   Subcontract Invoice Item amounts / Job Order stock quantity × invoice stock
@@ -95,6 +100,21 @@ Use `Subcontract Invoice Item` for the corresponding cost row. This command only
 changes mapping metadata and stores a private before/after mapping audit. It
 cannot invent a missing Job Order or infer a legacy return's original item;
 those relationships require separately reviewed source-data correction.
+
+## Follow-up migration for repeated service items
+
+`omeir_motors.patches.subcontract_profitability_descriptions` runs once after the
+original patch, including on sites where that patch already completed. It retries
+unresolved links with the exact-description rules above, preserves existing links,
+and records a private `subcontract-profitability-description-backfill.json` audit.
+Only submitted Subcontract Invoices provide report costs. Work Orders and planned
+Job Order costs are matching evidence, not additional expense/cost sources.
+
+Identical candidate rows, quantity/rate/UOM differences, and collisions with the
+Job Order's normal service/parts tables still require explicit reviewed linking.
+In particular, partial historical rows with unequal quantities are not guessed.
+After merging this change into develop, pull it and run site migration again; the
+new patch name ensures the repeat-item pass runs. Inspect remaining review rows.
 
 ## Staging rollout and accounting verification
 

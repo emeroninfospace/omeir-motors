@@ -3,7 +3,7 @@
 import frappe
 from frappe.utils import flt
 
-from omeir_motors.profitability.allocation import MappingError, resolve_sublet
+from omeir_motors.profitability.allocation import MappingError, resolve_sublet, same_sale_details
 from omeir_motors.profitability.setup import SALES_FIELD
 
 SOURCE_FIELD = "job_order_sublet_row"
@@ -29,7 +29,17 @@ def resolve_source(doc, row):
 	if not row.job_order:
 		raise MappingError("Subcontract row needs a Job Order.")
 	job = job_context(row.job_order, doc.company)
-	target = resolve_sublet(row.item_code, row.get(SOURCE_FIELD), job.sublet_details)
+	target = resolve_sublet(
+		row.item_code,
+		row.get(SOURCE_FIELD),
+		job.sublet_details,
+		details={
+			"description": row.get("description"),
+			"quantity": row.quantity,
+			"rate": row.get("rate"),
+			"rate_field": "rate",
+		},
+	)
 	stock_quantity(target)
 	if flt(row.quantity) <= 0 or flt(row.amount) < 0:
 		raise MappingError("Subcontract row needs positive quantity and non-negative cost.")
@@ -82,10 +92,26 @@ def resolve_sale(doc, row):
 		if not original or (explicit and explicit != original):
 			raise MappingError("Return needs the original Sales Invoice Item with its sublet link.")
 		explicit = original
-	if not explicit and sum(r.item_code == row.item_code for r in doc.items) != 1:
-		raise MappingError("Repeated service item on invoice; select each exact sublet row.")
+	siblings = [r for r in doc.items if r.item_code == row.item_code]
+	if not explicit and len(siblings) > 1 and sum(same_sale_details(row, r) for r in siblings) != 1:
+		raise MappingError(
+			"Repeated invoice rows have indistinguishable details; select each exact sublet row."
+		)
 	others = [r.item_code for r in list(job.service_item or []) + list(job.job_order_items or [])]
-	target = resolve_sublet(row.item_code, explicit, relevant, others)
+	target = resolve_sublet(
+		row.item_code,
+		explicit,
+		relevant,
+		others,
+		details={
+			"description": row.get("description"),
+			"quantity": row.get("qty"),
+			"rate": row.get("base_rate"),
+			"rate_field": "margin_rate",
+			"uom": row.get("uom"),
+		},
+		require_details=len(siblings) > 1,
+	)
 	stock_quantity(target)
 	if row.get("delivered_by_supplier") or frappe.db.exists("Product Bundle", row.item_code):
 		raise MappingError("Subcontract links do not support drop shipping or Product Bundles.")
