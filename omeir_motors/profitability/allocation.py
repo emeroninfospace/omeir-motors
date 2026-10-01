@@ -8,10 +8,11 @@ class MappingError(ValueError):
 
 
 def resolve_sublet(item_code, explicit, sublets, other_items=()):
+	# Frappe child Documents support get(), but are not subscriptable like dict rows.
 	if explicit:
-		matches = [r for r in sublets if r["name"] == explicit and r["item_code"] == item_code]
+		matches = [r for r in sublets if r.get("name") == explicit and r.get("item_code") == item_code]
 	else:
-		matches = [r for r in sublets if r["item_code"] == item_code]
+		matches = [r for r in sublets if r.get("item_code") == item_code]
 		if item_code in other_items:
 			raise MappingError("Item also appears outside the sublet table; select the exact sublet row.")
 	if len(matches) != 1:
