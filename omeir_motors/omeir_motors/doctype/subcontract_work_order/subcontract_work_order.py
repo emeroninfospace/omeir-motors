@@ -51,6 +51,7 @@ def create_subcontract_invoice(docname):
         row.rate = item.rate
         row.amount = item.amount
         row.job_order = item.job_order
+        row.job_order_sublet_row = item.get("job_order_sublet_row")
 
         total_qty += item.quantity or 0
         total_amt += item.amount or 0
@@ -109,6 +110,8 @@ def make_subcontract_work_order_from_job_order(source_name, target_doc=None, arg
         target.company = source.company
 
     def update_item(source, target, source_parent):
+        target.job_order = source_parent.name
+        target.job_order_sublet_row = source.name
         target.item_code = source.item_code
         target.item_name = source.item_name
         target.uom = source.uom

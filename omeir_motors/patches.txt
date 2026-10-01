@@ -7,3 +7,4 @@
 
 # omeir_motors.patches.patch  19/03/2026-1
 omeir_motors.patches.patch_sublet  20/05/2026
+omeir_motors.patches.subcontract_profitability

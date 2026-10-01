@@ -278,7 +278,8 @@ def make_sales_invoice(source_name, target_doc=None):
                 "uom": item.uom,
                 "quantity": item.quantity,
                 "rate": item.margin_rate,
-                "source_table": "sublet_details"
+                "source_table": "sublet_details",
+                "custom_job_order_sublet_row": item.name
             })
 
         for item_data in item_list:
@@ -303,6 +304,7 @@ def make_sales_invoice(source_name, target_doc=None):
 
             target.append("items", {
                 "item_code": item_code,
+                "custom_job_order_sublet_row": item_data.get("custom_job_order_sublet_row"),
                 "item_name": item_data.get("item_name"),
                 "description": item_data.get("description"),
                 "uom": item_data.get("uom"),
@@ -722,7 +724,8 @@ def make_subcontract(name):
                 "rate": sublet.rate,
                 "margin_amount": sublet.quantity * sublet.rate,
                 "amount": sublet.quantity * sublet.rate,
-                "job_order": order.name
+                "job_order": order.name,
+                "job_order_sublet_row": sublet.name
             })
     
     
@@ -780,6 +783,7 @@ def sync_sales_invoice_items(job_order):
                 "uom": item.uom,
                 "qty": item.quantity,
                 "rate": item.margin_rate,
+                "custom_job_order_sublet_row": item.name,
                 "amount": flt(item.quantity) * flt(item.margin_rate),
             })
 
@@ -804,6 +808,7 @@ def sync_sales_invoice_items(job_order):
 
             sinv.append("items", {
                 "item_code": item_code,
+                "custom_job_order_sublet_row": item_data.get("custom_job_order_sublet_row"),
                 "item_name": item_data.get("item_name"),
                 "description": item_data.get("description"),
                 "uom": item_data.get("uom"),

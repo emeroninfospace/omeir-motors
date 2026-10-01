@@ -134,7 +134,8 @@ doctype_js = {"Quotation" : "public/js/quotation.js",
 
 override_doctype_class = {
 	# "Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest",
-    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice"
+    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice",
+    "Report": "omeir_motors.overrides.report.OmeirReport"
 }
 
 # Document Events
@@ -150,8 +151,18 @@ override_doctype_class = {
 # }
 
 doc_events = {
+    "Subcontract Invoice": {
+        "before_submit": "omeir_motors.profitability.mapping.validate_source"
+    },
+    "Subcontract Work Order": {
+        "before_submit": "omeir_motors.profitability.mapping.validate_source"
+    },
     "Sales Invoice": {
-        "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
+        "validate": [
+            "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount",
+            "omeir_motors.profitability.mapping.validate_sales",
+        ],
+        "before_submit": "omeir_motors.profitability.mapping.check_sales_capacity"
     },
     "Purchase Order": {
         "validate": [
@@ -324,3 +335,7 @@ fixtures = [
         ]
     }
 ]
+
+# Install/migrate only add profitability metadata; historical linking is its own patch.
+after_install = "omeir_motors.profitability.setup.ensure_fields"
+after_migrate = "omeir_motors.profitability.setup.ensure_fields"
