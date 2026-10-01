@@ -89,6 +89,112 @@ class MappingTests(unittest.TestCase):
 		}
 		frappe.get_doc.side_effect = lambda dt, name: self.docs[(dt, name)]
 
+	def repeated_rows(self):
+		self.job.sublet_details = []
+		self.invoice.items = []
+		self.cost_doc.items = []
+		for index, (description, qty, cost, sell) in enumerate(
+			[("Outer seal", 1, 10, 15), ("Inner seal", 1, 20, 35), ("Support pin", 2, 30, 45)], 1
+		):
+			self.job.sublet_details.append(
+				Doc(
+					name=f"SUB{index}",
+					item_code="SERVICE",
+					description=f"<p>{description} &nbsp;</p>",
+					quantity=qty,
+					rate=cost,
+					margin_rate=sell,
+					uom="Nos",
+				)
+			)
+			self.invoice.items.append(
+				Doc(
+					name=f"SII{index}",
+					idx=index,
+					doctype="Sales Invoice Item",
+					item_code="SERVICE",
+					description=description.upper(),
+					qty=qty,
+					stock_qty=qty,
+					rate=sell,
+					base_rate=sell,
+					uom="Nos",
+				)
+			)
+			self.cost_doc.items.append(
+				Doc(
+					name=f"SCI{index}",
+					idx=index,
+					doctype="Subcontract Invoice Item",
+					item_code="SERVICE",
+					description=description,
+					quantity=qty,
+					rate=cost,
+					amount=qty * cost,
+					job_order="JOB1",
+				)
+			)
+
+	def test_repeated_sales_match_distinct_descriptions(self):
+		self.repeated_rows()
+		for index, row in enumerate(self.invoice.items, 1):
+			self.assertEqual(mapping.resolve_sale(self.invoice, row), f"SUB{index}")
+
+	def test_repeated_cost_rows_match_purchase_not_selling_rate(self):
+		self.repeated_rows()
+		for index, row in enumerate(self.cost_doc.items, 1):
+			self.assertEqual(mapping.resolve_source(self.cost_doc, row), f"SUB{index}")
+		self.cost_doc.items[0].rate = 15
+		with self.assertRaises(MappingError):
+			mapping.resolve_source(self.cost_doc, self.cost_doc.items[0])
+
+	def test_repeated_matching_requires_quantity_rate_uom_and_full_description(self):
+		for field, value in (("qty", 0.5), ("base_rate", 99), ("uom", "Box"), ("description", "seal")):
+			with self.subTest(field=field):
+				self.repeated_rows()
+				row = self.invoice.items[0]
+				row.set(field, value)
+				with self.assertRaises(MappingError):
+					mapping.resolve_sale(self.invoice, row)
+
+	def test_identical_sales_rows_remain_ambiguous(self):
+		self.repeated_rows()
+		duplicate = copy.deepcopy(self.invoice.items[0])
+		duplicate.name = "DUPLICATE"
+		self.invoice.items.append(duplicate)
+		with self.assertRaises(MappingError):
+			mapping.resolve_sale(self.invoice, self.invoice.items[0])
+
+	def test_identical_job_rows_remain_ambiguous(self):
+		self.repeated_rows()
+		duplicate = copy.deepcopy(self.job.sublet_details[0])
+		duplicate.name = "DUPLICATE"
+		self.job.sublet_details.append(duplicate)
+		with self.assertRaises(MappingError):
+			mapping.resolve_sale(self.invoice, self.invoice.items[0])
+
+	def test_description_backfill_links_both_sides_once(self):
+		self.repeated_rows()
+		frappe.get_all.side_effect = lambda dt, **kw: ["SC1"] if dt == "Subcontract Invoice" else ["SI1"]
+		all_rows = {r.name: r for r in self.invoice.items + self.cost_doc.items}
+		original = copy.deepcopy({name: row.__dict__ for name, row in all_rows.items()})
+		self.assertEqual(len(backfill.run(True)["linked"]), 6)
+		frappe.db.set_value.assert_not_called()
+
+		def write(dt, name, field, value, update_modified):
+			self.assertFalse(update_modified)
+			self.assertIn(field, (mapping.SALES_FIELD, mapping.SOURCE_FIELD))
+			all_rows[name].set(field, value)
+
+		with patch.object(frappe.db, "set_value", side_effect=write):
+			self.assertEqual(len(backfill.run(False)["linked"]), 6)
+			self.assertEqual(backfill.run(False)["linked"], [])
+		for name, row in all_rows.items():
+			business = {
+				k: v for k, v in row.__dict__.items() if k not in (mapping.SOURCE_FIELD, mapping.SALES_FIELD)
+			}
+			self.assertEqual(business, original[name])
+
 	def test_future_source_and_sales_links_without_accounting_writes(self):
 		mapping.validate_source(self.cost_doc)
 		mapping.validate_sales(self.invoice)
