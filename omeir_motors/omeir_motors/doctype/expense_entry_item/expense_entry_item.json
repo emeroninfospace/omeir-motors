@@ -41,11 +41,13 @@
   },
   {
    "fieldname": "supplier_name",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Supplier Name"
+   "label": "Supplier Name",
+   "options": "Supplier"
   },
   {
+   "fetch_from": "supplier_name.tax_id",
    "fieldname": "trn",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -93,8 +95,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "VAT Amount",
-   "options": "currency",
-   "read_only": 1
+   "options": "currency"
   },
   {
    "bold": 1,
@@ -116,13 +117,19 @@
    "fieldtype": "Link",
    "label": "Project",
    "options": "Project"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-25 12:03:21.148070",
+ "modified": "2026-06-02 11:59:26.696620",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Expense Entry Item",

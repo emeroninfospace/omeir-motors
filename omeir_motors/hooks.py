@@ -45,7 +45,8 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {"Quotation" : "public/js/quotation.js",
               "Sales Invoice": "public/js/sales_invoice.js",
-              "Purchase Receipt": "public/js/purchase_receipt.js"}
+              "Purchase Receipt": "public/js/purchase_receipt.js",
+              "Purchase Order": "public/js/purchase_order.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -133,7 +134,7 @@ doctype_js = {"Quotation" : "public/js/quotation.js",
 
 override_doctype_class = {
 	# "Material Request": "omeir_motors.overrides.material_request.CustomMaterialRequest",
-    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice",
+    "Sales Invoice": "omeir_motors.overrides.sales_invoice.CustomSalesInvoice"
 }
 
 # Document Events
@@ -152,10 +153,31 @@ doc_events = {
     "Sales Invoice": {
         "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
     },
+
     
     "Journal Entry": {
         "before_cancel": "omeir_motors.omeir_motors.doctype.expense_entry.expense_entry.unlink_journal_entry",
-    }
+        "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel",
+    },
+    "Purchase Order": {
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref",
+            "omeir_motors.omeir_motors.api.purchase_order.validate_item_rate",
+        ]
+    },
+    "Purchase Invoice": {
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_invoice.validate_item_rate",
+            "omeir_motors.omeir_motors.api.purchase_invoice.validate_bill_date",
+        ]
+    },
+    "Purchase Receipt": {
+        "validate": [
+            "omeir_motors.omeir_motors.api.purchase_receipt.validate_duplicate_receipt_ref",
+            "omeir_motors.omeir_motors.api.purchase_receipt.validate_invoice_date",
+        ]
+    },
+
 
 }
 
@@ -204,7 +226,8 @@ scheduler_events = {
 # }
 
 override_doctype_dashboards = {
-	"Quotation": "omeir_motors.overrides.quotation_dashboard.get_data"
+	"Quotation": "omeir_motors.overrides.quotation_dashboard.get_data",
+    "Supplier": "omeir_motors.overrides.supplier_dashboard.get_data"
 }
 
 # exempt linked doctypes from being automatically cancelled
@@ -290,6 +313,19 @@ fixtures = [
                 "Parts Controller",
                 "Service Advisor"
             ]]
+        ]
+    },
+    {
+        "dt": "Property Setter",
+        "filters": [
+            ["name", "in", ["Purchase Invoice-main-field_order", "Payment Entry-posting_date-allow_on_submit"]]
+        ]
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["name", "in", ["Purchase Invoice-custom_po_no",
+                             "Purchase Invoice-custom_specific_pr"]]
         ]
     }
 ]

@@ -22,6 +22,42 @@ frappe.ui.form.on("Subcontract Invoice", {
                 };
                 frappe.set_route("query-report", "General Ledger");
             }, "View");
+
+            frm.add_custom_button("Repost Date", () => {
+                let d = new frappe.ui.Dialog({
+                    title: "Repost Transaction Date",
+                    fields: [
+                        {
+                            label: "New Transaction Date",
+                            fieldname: "new_date",
+                            fieldtype: "Date",
+                            reqd: 1,
+                            default: frm.doc.transaction_date
+                        }
+                    ],
+                    primary_action_label: "Repost",
+                    primary_action(values) {
+                        frappe.call({
+                            method: "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.repost_date",
+                            args: {
+                                invoice: frm.doc.name,
+                                new_date: values.new_date
+                            },
+                            callback(r) {
+                                if (!r.exc) {
+                                    d.hide();
+                                    frappe.show_alert({
+                                        message: "Transaction date updated successfully",
+                                        indicator: "green"
+                                    }, 5);
+                                    frm.reload_doc();
+                                }
+                            }
+                        });
+                    }
+                });
+                d.show();
+            });
         }
 
         make_payment(frm);
@@ -185,6 +221,13 @@ function make_payment(frm) {
             title: "Make Payment",
             fields: [
                 {
+                    label: "Posting Date",
+                    fieldname: "posting_date",
+                    fieldtype: "Date",
+                    reqd: 1,
+                    default: frappe.datetime.get_today()
+                },
+                {
                     label: "Mode of Payment",
                     fieldname: "mode_of_payment",
                     fieldtype: "Link",
@@ -226,16 +269,16 @@ function make_payment(frm) {
                     args: {
                         invoice: frm.doc.name,
                         mode_of_payment: values.mode_of_payment,
-                        amount: values.amount
+                        amount: values.amount,
+                        posting_date: values.posting_date
                     },
                     callback(r) {
                         if (r.message) {
                             d.hide();
-                            frappe.msgprint({
-                                title: __("Payment Created"),
-                                message: __("Journal Entry {0} created successfully.", [r.message]),
+                            frappe.show_alert({
+                                message: `Journal Entry <b>${r.message}</b> created successfully.`,
                                 indicator: "green"
-                            });
+                            }, 7);
                             frm.reload_doc();
                         }
                     }

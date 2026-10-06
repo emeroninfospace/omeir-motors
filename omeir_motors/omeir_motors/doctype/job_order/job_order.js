@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Job Order', {
     setup(frm) {
-        frm.ignore_doctypes_on_cancel_all = ["Technician Allocation", "Material Request", "Quotation", "Vehicle Log", "Sales Invoice", "Stock Entry"];
+        frm.ignore_doctypes_on_cancel_all = ["Technician Allocation", "Material Request", "Quotation", "Vehicle Log", "Sales Invoice", "Stock Entry", "Trip Sheet"];
         frm.set_query('item_code', 'service_item', function(doc, cdt, cdn) {
             return {
                 filters: {
@@ -31,7 +31,7 @@ frappe.ui.form.on('Job Order', {
         });
     },
     before_save: function(frm) {
-        if (!frm.doc.vehicle_in) {
+        if (frm.is_new() ) {
             frm.set_value('vehicle_in', frappe.datetime.now_datetime());
         }
     },
@@ -98,38 +98,45 @@ frappe.ui.form.on('Job Order', {
 
     frm.add_custom_button('Sales Invoice', () => {
 
-        // Re-fetch fresh data at click time to avoid stale results
-        frappe.db.get_list('Sales Invoice', {
-            filters: { custom_job_order: frm.doc.name },
-            fields: ['name', 'docstatus']
-        }).then((fresh_invoices) => {
+    frappe.db.get_list('Sales Invoice', {
+        filters: { custom_job_order: frm.doc.name },
+        fields: ['name', 'docstatus']
+    }).then((fresh_invoices) => {
 
-            let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
+        let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
 
-            if (fresh_active.length >= 2) {
-                frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
-                return;
-            }
-
-            // ✅ REMOVED the draft check — allows 2nd invoice even if 1st is draft
-            // Only block if both slots are already filled (handled above)
-
-            frappe.call({
-                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
-                args: {
-                    source_name: frm.doc.name
-                },
-                callback: function(r) {
-                    if (!r.exc) {
-                        let doc = frappe.model.sync(r.message)[0];
-                        frappe.set_route('Form', doc.doctype, doc.name);
-                    }
+        if (fresh_active.length >= 2) {
+            frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
+            return;
+        }
+        frappe.call({
+            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.validate_before_sales_invoice',
+            args: {
+                job_order: frm.doc.name
+            },
+            callback: function(r) {
+                if (r.exc) {
+                    return; 
                 }
-            });
 
+                frappe.call({
+                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
+                    args: {
+                        source_name: frm.doc.name
+                    },
+                    callback: function(r2) {
+                        if (!r2.exc) {
+                            let doc = frappe.model.sync(r2.message)[0];
+                            frappe.set_route('Form', doc.doctype, doc.name);
+                        }
+                    }
+                });
+            }
         });
 
-    }, 'Create');
+    });
+
+}, 'Create');
 
     if (frm.doc.docstatus === 1) {
         frappe.db.get_list('Sales Invoice', {
@@ -398,6 +405,13 @@ frappe.ui.form.on('Sublet Items', {
         calculate_sublet_amount(frm, cdt, cdn);
         calculate_margin_rate(frm, cdt, cdn);
     },
+    sublet_margin_percent: function(frm, cdt, cdn) {
+        calculate_sublet_amount(frm, cdt, cdn);
+        calculate_margin_rate(frm, cdt, cdn);
+    },
+    sublet_details_remove: function(frm) {
+        calculate_sublet_totals(frm);
+    }
 });
     function calculate_row_duration(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
@@ -422,11 +436,11 @@ frappe.ui.form.on('Sublet Items', {
 }
 
 function calculate_margin_rate(frm) {
-    let margin = frm.sublet_margin || 0;
+    
 
     (frm.doc.sublet_details || []).forEach(row => {
         let base_rate = row.rate || 0;
-        let new_rate = base_rate * (1 + margin / 100);
+        let new_rate = base_rate * (1 + row.sublet_margin_percent / 100);
         frappe.model.set_value(row.doctype, row.name, 'margin_rate', new_rate);
     });
  calculate_sublet_totals(frm);
@@ -443,7 +457,7 @@ function calculate_sublet_amount(frm, cdt, cdn) {
 
     let qty = row.quantity || 0;
     let rate = row.rate || 0;
-    let margin = frm.sublet_margin || 0;
+    let margin = row.sublet_margin_percent || 0;
     console.log(margin);
 
     

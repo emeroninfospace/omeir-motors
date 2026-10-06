@@ -23,6 +23,9 @@ class JobOrder(Document):
         self.create_vehicle_log()
         self.validate_and_update_vehicle_odometer()
 
+    def on_cancel(self):
+        self.db_set("status", "Cancelled")
+
     def validate_and_update_vehicle_odometer(self):
         odo = frappe.db.get_single_value("Binomeir Settings", "odometer_validate")
 
@@ -45,6 +48,7 @@ class JobOrder(Document):
         )
 
     def before_cancel(self):
+        self.ignore_linked_doctypes = ("Trip Sheet", "Job Order Child Table")
 
         def cancel_stock_entries(material_requests):
             if not material_requests:
@@ -167,6 +171,41 @@ class JobOrder(Document):
                     f"Row {row.idx}: Rate cannot be less than {min_rate} "
                     f"(Cost {valuation_rate} + {margin}%)"
                 )
+    def validate_material_request_for_job_order(self):
+           
+            if not self.job_order_items:
+                return
+
+            material_requests = frappe.get_all(
+                "Material Request",
+                filters={
+                    "custom_job_order": self.name,
+                    "docstatus": ["!=", 2]
+                },
+                pluck="name"
+            )
+
+            if not material_requests:
+                frappe.throw(
+                    f"Please create a Material Transfer for Job Order {self.name} "
+                    f"before creating a Sales Invoice."
+                )
+
+            has_items = frappe.db.exists(
+                "Material Request Item",
+                {"parent": ["in", material_requests]}
+            )
+
+            if not has_items:
+                frappe.throw(
+                    f"The Material Transfer linked to Job Order {self.name} has no items. "
+                    f"Please add items to the Material Transfer before creating a Sales Invoice."
+                )
+
+@frappe.whitelist()
+def validate_before_sales_invoice(job_order):
+    doc = frappe.get_doc("Job Order", job_order)
+    doc.validate_material_request_for_job_order()
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    
@@ -179,6 +218,7 @@ def make_sales_invoice(source_name, target_doc=None):
         target.set_warehouse = source.warehouse
         target.selling_price_list = ""
         target.disable_rounded_total = 1
+        target.custom_bus_type = source.bus_type
 
         if source.company:
             target.company = source.company
@@ -676,11 +716,12 @@ def make_subcontract(name):
         for sublet in order.sublet_details:
             subcontract.append("items", {
                 "item_code": sublet.item_code,
+                "description": sublet.description,
                 "item_name": sublet.item_name,
                 "quantity": sublet.quantity,
-                "rate": sublet.margin_rate,
-                "margin_amount":sublet.margin_amount,
-                "amount": sublet.amount,
+                "rate": sublet.rate,
+                "margin_amount": sublet.quantity * sublet.rate,
+                "amount": sublet.quantity * sublet.rate,
                 "job_order": order.name
             })
     

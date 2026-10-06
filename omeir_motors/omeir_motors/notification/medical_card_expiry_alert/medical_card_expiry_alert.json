@@ -1,0 +1,31 @@
+{
+ "attach_files": "",
+ "attach_print": 0,
+ "channel": "System Notification",
+ "condition": "doc.custom_medical_card_expiry_date and doc.status == \"Active\"",
+ "creation": "2026-06-08 18:41:38.454407",
+ "date_changed": "custom_medical_card_expiry_date",
+ "days_in_advance": 30,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Employee",
+ "enabled": 1,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "Employee **{{ doc.employee_name }}** ({{ doc.name }}) medical card is expiring on **{{ doc.custom_medical_card_expiry_date }}**.\n\n- Medical Card Number: {{ doc.custom_medical_card_number }}\n- Department: {{ doc.department }}\n- Designation: {{ doc.designation }}\n\nPlease ensure health insurance coverage is renewed before expiry.",
+ "message_type": "Markdown",
+ "modified": "2026-06-08 18:41:38.454407",
+ "modified_by": "Administrator",
+ "module": "Omeir Motors",
+ "name": "Medical Card Expiry Alert",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "HR Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Medical Card Expiring - {{ doc.employee_name }}"
+}

@@ -47,8 +47,9 @@ def create_subcontract_invoice(docname):
         row = invoice.append("items", {})
         row.item_code = item.item_code
         row.item_name = item.item_name
+        row.description = item.description
         row.quantity = item.quantity
-        row.rate = item.amount
+        row.rate = item.rate
         row.amount = item.amount
         row.job_order = item.job_order
 

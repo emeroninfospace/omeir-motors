@@ -17,7 +17,7 @@
   "warehouse",
   "total_duration",
   "gate_pass_issued",
-  "invoiced_status",
+  "bus_type",
   "column_break_atxk",
   "expected_completion_date",
   "customer",
@@ -25,6 +25,7 @@
   "type",
   "address",
   "amended_from",
+  "vehicle_service_location",
   "driver_details_section",
   "driver",
   "license_number",
@@ -246,7 +247,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nDraft\nPending\nCompleted",
+   "options": "\nDraft\nPending\nCompleted\nCancelled",
    "read_only": 1
   },
   {
@@ -436,11 +437,18 @@
    "label": "Gate Pass Issued?"
   },
   {
-   "allow_on_submit": 1,
-   "fieldname": "invoiced_status",
+   "fieldname": "vehicle_service_location",
    "fieldtype": "Select",
-   "label": "Invoiced Status",
-   "options": "\nInvoiced\nNot Invoiced"
+   "label": "Vehicle Service Location",
+   "options": "\nRUWAIS\nHABSHAN\nSHAH\nAGENCY\nROAD-SIDE ASSISTANCE",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bus_type",
+   "fieldtype": "Select",
+   "label": "Bus Type",
+   "options": "\nSCHOOL BUS\nSTAFF BUS\nADNOC BUS\nELECTRIC BUS\nOTHERS",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
