@@ -10,6 +10,7 @@
   "supplier",
   "company",
   "status",
+  "custom_supplier_details",
   "column_break_ombr",
   "transaction_date",
   "subcontract_work_order",
@@ -323,13 +324,19 @@
    "label": "Status",
    "options": "Draft\nUnpaid\nPartially Paid\nPaid",
    "read_only": 1
+  },
+  {
+   "fieldname": "custom_supplier_details",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Supplier Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-09 14:51:50.479880",
+ "modified": "2026-10-05 17:52:06.482890",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Invoice",

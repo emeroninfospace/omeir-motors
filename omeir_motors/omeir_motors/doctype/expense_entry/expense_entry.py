@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate
+from frappe.utils import flt
 
 
 class ExpenseEntry(Document):
@@ -28,22 +28,22 @@ class ExpenseEntry(Document):
             self.total_amount += item.amount
             self.total_vat += item.vat_amount
 
-        self.grand_total = self.total_amount + self.total_vat
+        self.total_amount = flt(self.total_amount, self.precision("total_amount"))
+        self.total_vat = flt(self.total_vat, self.precision("total_vat"))
+        self.grand_total = flt(self.total_amount + self.total_vat, self.precision("grand_total"))
 
-    def on_submit(self):
-        # Set status to Unpaid when document is submitted
-        self.db_set("status", "Unpaid", update_modified=False)
+    def before_submit(self):
+        # Saved together with the submit, no extra DB write needed
+        self.status = "Unpaid"
 
     def on_cancel(self):
-        if self.journal_entry:
+        # Cancelling the Expense Entry also cancels its payment Journal Entry
+        if self.journal_entry and frappe.db.get_value("Journal Entry", self.journal_entry, "docstatus") == 1:
             je = frappe.get_doc("Journal Entry", self.journal_entry)
-            if je.docstatus == 1:
-                
-                je.cancel()
-        
-        # Reset status to Draft when cancelled
-        self.db_set("status", "", update_modified=False)
-        self.db_set("journal_entry", "", update_modified=False)
+            je.flags.ignore_permissions = True
+            je.cancel()
+
+        self.db_set({"status": "", "journal_entry": None}, update_modified=False)
 
     @frappe.whitelist()
     def make_journal_entry(self, payment_date=None, remark=None):
@@ -244,3 +244,27 @@ def make_consolidated_journal_entry(names, posting_date=None, remark=None):
         doc.db_set("status", "Paid", update_modified=False)
 
     return je.name
+  
+  
+def unlink_journal_entry(doc, method=None):
+  
+    expense_entries = frappe.get_all(
+        "Expense Entry",
+        filters={"journal_entry": doc.name, "docstatus": 1},
+        pluck="name",
+    )
+
+    for name in expense_entries:
+        frappe.db.set_value(
+            "Expense Entry",
+            name,
+            {"journal_entry": None, "status": "Unpaid"},
+            update_modified=False,
+        )
+
+    if expense_entries:
+        frappe.msgprint(
+            _("Unlinked from Expense Entry {0} and set it to Unpaid.").format(", ".join(expense_entries)),
+            alert=True,
+            indicator="orange",
+        )

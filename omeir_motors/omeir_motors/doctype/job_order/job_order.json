@@ -88,7 +88,7 @@
    "fieldname": "job_type",
    "fieldtype": "Select",
    "label": "Job Type",
-   "options": "\nNew\nRoutine Service\nWarranty\nInsurance Claim\nOther",
+   "options": "\nNew\nRoutine Service\nWarranty\nInsurance Claim\nMechanical Repair\nElectrical Repair\nOther",
    "reqd": 1
   },
   {
@@ -455,7 +455,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-17 15:18:52.690976",
+ "modified": "2026-10-05 17:49:11.382416",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",

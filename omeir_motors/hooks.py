@@ -153,6 +153,12 @@ doc_events = {
     "Sales Invoice": {
         "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
     },
+
+    
+    "Journal Entry": {
+        "before_cancel": "omeir_motors.omeir_motors.doctype.expense_entry.expense_entry.unlink_journal_entry",
+        "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel",
+    },
     "Purchase Order": {
         "validate": [
             "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref",
@@ -171,9 +177,8 @@ doc_events = {
             "omeir_motors.omeir_motors.api.purchase_receipt.validate_invoice_date",
         ]
     },
-    "Journal Entry": {
-        "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel"
-    }
+
+
 }
 
 # Scheduled Tasks
