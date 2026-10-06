@@ -8,11 +8,14 @@ from frappe.utils import flt, nowdate
 
 
 class ServiceNotification(Document):
-    def validate_rate_amount(self):
-        if self.service_items:
-            self.total_amount = sum(item.amount for item in self.service_items)
-            self.total_quantity = sum(item.quantity for item in self.service_items)
+    def before_save(self):
+        self.validate_rate_amount()
 
+    def validate_rate_amount(self):
+        items = self.get("service_items") or []
+
+        self.total_amount = sum(flt(item.amount) for item in items)
+        self.total_quantity = sum(flt(item.quantity) for item in items)
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):

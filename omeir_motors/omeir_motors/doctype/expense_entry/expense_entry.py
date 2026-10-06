@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate
+from frappe.utils import flt
 
 
 class ExpenseEntry(Document):
@@ -16,109 +16,141 @@ class ExpenseEntry(Document):
         self.total_vat = 0
 
         for item in self.items:
-            item.amount = flt(item.amount)
-
-            if item.amount and item.vat_percentage:
-                item.vat_amount = flt(item.amount * item.vat_percentage / 100)
-            else:
-                item.vat_amount = 0
-
-            item.total_amount = flt(item.amount) + flt(item.vat_amount)
+            item.amount = flt(item.amount, item.precision("amount"))
+            item.vat_amount = flt(
+                item.amount * flt(item.vat_percentage) / 100, item.precision("vat_amount")
+            )
+            item.total_amount = flt(item.amount + item.vat_amount, item.precision("total_amount"))
 
             self.total_amount += item.amount
             self.total_vat += item.vat_amount
 
-        self.grand_total = self.total_amount + self.total_vat
+        self.total_amount = flt(self.total_amount, self.precision("total_amount"))
+        self.total_vat = flt(self.total_vat, self.precision("total_vat"))
+        self.grand_total = flt(self.total_amount + self.total_vat, self.precision("grand_total"))
 
-    def on_submit(self):
-        # Set status to Unpaid when document is submitted
-        self.db_set("status", "Unpaid", update_modified=False)
+    def before_submit(self):
+        # Saved together with the submit, no extra DB write needed
+        self.status = "Unpaid"
 
     def on_cancel(self):
-        if self.journal_entry:
+        # Cancelling the Expense Entry also cancels its payment Journal Entry
+        if self.journal_entry and frappe.db.get_value("Journal Entry", self.journal_entry, "docstatus") == 1:
             je = frappe.get_doc("Journal Entry", self.journal_entry)
-            if je.docstatus == 1:
-                
-                je.cancel()
-        
-        # Reset status to Draft when cancelled
-        self.db_set("status", "", update_modified=False)
-        self.db_set("journal_entry", "", update_modified=False)
+            je.flags.ignore_permissions = True
+            je.cancel()
 
-    from frappe.utils import flt
+        self.db_set({"status": "", "journal_entry": None}, update_modified=False)
+
+    def validate_can_make_payment(self):
+        if self.docstatus != 1:
+            frappe.throw(_("Expense Entry {0} is not submitted.").format(self.name))
+
+        if self.journal_entry:
+            frappe.throw(_("Expense Entry {0} already has a Journal Entry.").format(self.name))
+
+        if self.status == "Paid":
+            frappe.throw(_("Expense Entry {0} is already Paid.").format(self.name))
+
+        for row in self.items:
+            missing = []
+            if not row.account:
+                missing.append(_("Account To"))
+            if not row.account_from:
+                missing.append(_("Account From"))
+            if flt(row.vat_amount) > 0 and not row.tax_account:
+                missing.append(_("Tax Account"))
+
+            if missing:
+                frappe.throw(
+                    _("Row {0}: {1} is required to make the payment.").format(row.idx, ", ".join(missing))
+                )
 
     @frappe.whitelist()
     def make_journal_entry(self):
-        je = frappe.new_doc("Journal Entry")
-        je.voucher_type = "Journal Entry"
-        je.company = self.company
-        je.posting_date = self.posting_date
-        je.remark = f"Journal Entry for Expense Entry {self.name}"
+        self.validate_can_make_payment()
 
-        total_debit = 0
-        total_credit = 0
+        je = frappe.new_doc("Journal Entry")
+        je.update(
+            {
+                "voucher_type": "Journal Entry",
+                "company": self.company,
+                "posting_date": self.posting_date,
+                "user_remark": _("Journal Entry for Expense Entry {0}").format(self.name),
+            }
+        )
 
         for row in self.items:
-            debit_amount = flt(row.amount, 2)
-            vat_amount = flt(row.vat_amount or 0, 2)
-            credit_amount = flt(debit_amount + vat_amount, 2)
+            amount = flt(row.amount, 2)
+            vat_amount = flt(row.vat_amount, 2)
 
-            # Expense Debit
-            je.append("accounts", {
-                "account": row.account,
-                "debit_in_account_currency": debit_amount,
-                "user_remark": row.narration,
-                "voucher_no": row.voucher_no,
-                "trn": row.trn,
-                "custom_supplier_name": row.supplier_name,
-                "project": row.project
-            })
-            total_debit += debit_amount
-
-            # VAT Debit
-            if vat_amount > 0:
-                je.append("accounts", {
-                    "account": row.tax_account,
-                    "debit_in_account_currency": vat_amount
-                })
-                total_debit += vat_amount
-
-            # Credit Entry
-            je.append("accounts", {
-                "account": row.account_from,
-                "credit_in_account_currency": credit_amount
-            })
-            total_credit += credit_amount
-
-        # 🔥 FINAL ADJUSTMENT (fix 0.01 issue)
-        difference = flt(total_debit - total_credit, 2)
-
-        if difference != 0:
-            # Adjust last credit row
-            je.accounts[-1].credit_in_account_currency = flt(
-                je.accounts[-1].credit_in_account_currency + difference, 2
+            # Expense debit
+            je.append(
+                "accounts",
+                {
+                    "account": row.account,
+                    "debit_in_account_currency": amount,
+                    "user_remark": row.narration,
+                    "voucher_no": row.voucher_no,
+                    "trn": row.trn,
+                    "custom_supplier_name": row.supplier_name,
+                    "project": row.project,
+                },
             )
 
-        je.insert(ignore_permissions=True)
+            # VAT debit
+            if vat_amount > 0:
+                je.append(
+                    "accounts",
+                    {
+                        "account": row.tax_account,
+                        "debit_in_account_currency": vat_amount,
+                        "project": row.project,
+                    },
+                )
+
+            je.append(
+                "accounts",
+                {
+                    "account": row.account_from,
+                    "credit_in_account_currency": flt(amount + vat_amount, 2),
+                },
+            )
+
+        je.flags.ignore_permissions = True
+        je.insert()
         je.submit()
 
-        self.db_set("journal_entry", je.name, update_modified=False)
-        self.db_set("status", "Paid", update_modified=False)
-
+        self.db_set({"journal_entry": je.name, "status": "Paid"}, update_modified=False)
         return je.name
 
 
 @frappe.whitelist()
 def make_payment_for_expense_entry(name):
     doc = frappe.get_doc("Expense Entry", name)
-
-    if doc.docstatus != 1:
-        frappe.throw(_("Expense Entry {0} is not submitted.").format(name))
-
-    if doc.status == "Paid":
-        frappe.throw(_("Expense Entry {0} is already Paid.").format(name))
-
-    if doc.journal_entry:
-        frappe.throw(_("Expense Entry {0} already has a Journal Entry.").format(name))
-
+    doc.check_permission("submit")
     return doc.make_journal_entry()
+
+
+def unlink_journal_entry(doc, method=None):
+  
+    expense_entries = frappe.get_all(
+        "Expense Entry",
+        filters={"journal_entry": doc.name, "docstatus": 1},
+        pluck="name",
+    )
+
+    for name in expense_entries:
+        frappe.db.set_value(
+            "Expense Entry",
+            name,
+            {"journal_entry": None, "status": "Unpaid"},
+            update_modified=False,
+        )
+
+    if expense_entries:
+        frappe.msgprint(
+            _("Unlinked from Expense Entry {0} and set it to Unpaid.").format(", ".join(expense_entries)),
+            alert=True,
+            indicator="orange",
+        )

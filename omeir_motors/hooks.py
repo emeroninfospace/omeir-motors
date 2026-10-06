@@ -151,7 +151,12 @@ override_doctype_class = {
 doc_events = {
     "Sales Invoice": {
         "validate": "omeir_motors.omeir_motors.api.sales_invoice.validate_invoice_discount"
+    },
+    
+    "Journal Entry": {
+        "before_cancel": "omeir_motors.omeir_motors.doctype.expense_entry.expense_entry.unlink_journal_entry",
     }
+
 }
 
 # Scheduled Tasks

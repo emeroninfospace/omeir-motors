@@ -9,6 +9,7 @@
   "subcontract_work_order_section",
   "supplier",
   "company",
+  "custom_supplier_details",
   "column_break_hrkg",
   "transaction_date",
   "status",
@@ -299,13 +300,19 @@
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
    "label": "Supplier Invoice Date"
+  },
+  {
+   "fieldname": "custom_supplier_details",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Supplier Details"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-07 15:38:37.811825",
+ "modified": "2026-10-05 17:51:05.409900",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Subcontract Work Order",
