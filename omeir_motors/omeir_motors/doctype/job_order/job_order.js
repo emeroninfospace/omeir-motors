@@ -55,7 +55,10 @@ frappe.ui.form.on('Job Order', {
             };
         }
 
-       if (frm.doc.docstatus !== 2 && !frm.is_new()) {
+        // Completed Job Orders only expose the Subcontract Work Order button
+        const is_completed = frm.doc.status === "Completed";
+
+       if (frm.doc.docstatus !== 2 && !frm.is_new() && !is_completed) {
 
         frappe.db.get_list('Technician Allocation', {
             filters: { job_order: frm.doc.name, docstatus: 1 },
@@ -87,7 +90,7 @@ frappe.ui.form.on('Job Order', {
         });
     }
 
-    if (frm.doc.docstatus === 1) {
+    if (frm.doc.docstatus === 1 && !is_completed) {
 
         frappe.db.get_list('Sales Invoice', {
             filters: { custom_job_order: frm.doc.name },
@@ -170,7 +173,7 @@ frappe.ui.form.on('Job Order', {
 
 });
 }
-    if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {
+    if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation && !is_completed) {
 
     frm.add_custom_button('Quotation', () => {
         frappe.call({
@@ -189,6 +192,7 @@ frappe.ui.form.on('Job Order', {
 }
 if (frm.doc.docstatus !== 2 && !frm.is_new()) {
 
+    if (!is_completed) {
     frm.add_custom_button('Material Request', () => {
         frappe.call({
             method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_material_request_from_jo',
@@ -203,6 +207,7 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
             }
         });
     }, 'Create');
+    }
 
     frm.add_custom_button('Subcontract Work Order', () => {
         frappe.call({
