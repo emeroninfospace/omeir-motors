@@ -173,8 +173,16 @@ class JobOrder(Document):
                     f"Row {row.idx}: Rate cannot be less than {min_rate} "
                     f"(Cost {valuation_rate} + {margin}%)"
                 )
+    def get_required_items(self):
+        """Qty per item to be transferred; empty when the Job Order has only services / sublets."""
+        required = {}
+        for row in self.job_order_items:
+            if row.item_code and flt(row.quantity) > 0:
+                required[row.item_code] = required.get(row.item_code, 0) + flt(row.quantity)
+        return required
+
     def validate_material_request_for_job_order(self):
-        if not self.job_order_items:
+        if not self.get_required_items():
             return
 
         material_requests = frappe.get_all(
@@ -198,11 +206,7 @@ class JobOrder(Document):
     def get_transfer_details(self):
         """Compare Job Order Item qty with qty moved by submitted Material Transfer
         Stock Entries (linked directly or through the Job Order's Material Requests)."""
-        required = {}
-        for row in self.job_order_items:
-            if row.item_code and flt(row.quantity) > 0:
-                required[row.item_code] = required.get(row.item_code, 0) + flt(row.quantity)
-
+        required = self.get_required_items()
         if not required:
             return None, 0, []
 
