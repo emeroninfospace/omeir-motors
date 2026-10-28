@@ -87,10 +87,12 @@ frappe.ui.form.on('Job Order', {
         });
     }
 
+    if (frm.doc.docstatus !== 2 && !frm.is_new()) {
+        show_transfer_status(frm);
+    }
+
     if (frm.doc.docstatus === 1) {
         const method_path = 'omeir_motors.omeir_motors.doctype.job_order.job_order.';
-
-        show_transfer_status(frm);
 
         frm.add_custom_button('Sales Invoice', () => {
             frappe.db.count('Sales Invoice', {
