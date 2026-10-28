@@ -281,7 +281,7 @@ def update_job_order_transfer_status(doc, method=None):
         ))
 
     for job_order in job_orders:
-        if frappe.db.get_value("Job Order", job_order, "docstatus") == 1:
+        if frappe.db.get_value("Job Order", job_order, "docstatus") in (0, 1):
             frappe.get_doc("Job Order", job_order).update_transfer_status()
 
 
