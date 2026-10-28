@@ -8,6 +8,7 @@
   "odometer_validate",
   "validate_employee",
   "validate_job_order",
+  "validate_stock_transfer",
   "column_break_zrde",
   "sublet_margin",
   "job_order_margin"
@@ -44,13 +45,20 @@
    "fieldname": "validate_job_order",
    "fieldtype": "Check",
    "label": "Validate Job order"
+  },
+  {
+   "default": "0",
+   "description": "Allow Sales Invoice against a Job Order only after all Job Order Items are transferred through Stock Entry",
+   "fieldname": "validate_stock_transfer",
+   "fieldtype": "Check",
+   "label": "Validate Stock Transfer"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-05-18 09:42:38.044044",
+ "modified": "2026-10-28 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Binomeir Settings",

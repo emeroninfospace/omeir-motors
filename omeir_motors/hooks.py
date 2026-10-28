@@ -159,6 +159,10 @@ doc_events = {
         "before_cancel": "omeir_motors.omeir_motors.doctype.expense_entry.expense_entry.unlink_journal_entry",
         "on_cancel": "omeir_motors.omeir_motors.doctype.subcontract_invoice.subcontract_invoice.on_journal_entry_cancel",
     },
+    "Stock Entry": {
+        "on_submit": "omeir_motors.omeir_motors.doctype.job_order.job_order.update_job_order_transfer_status",
+        "on_cancel": "omeir_motors.omeir_motors.doctype.job_order.job_order.update_job_order_transfer_status",
+    },
     "Purchase Order": {
         "validate": [
             "omeir_motors.omeir_motors.api.purchase_order.validate_duplicate_invoice_ref",

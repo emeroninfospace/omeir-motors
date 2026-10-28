@@ -14,10 +14,13 @@
   "quotation",
   "material_request",
   "status",
+  "transfer_status",
+  "per_transferred",
   "warehouse",
   "total_duration",
   "gate_pass_issued",
   "bus_type",
+  "work_order_no",
   "column_break_atxk",
   "expected_completion_date",
   "customer",
@@ -449,13 +452,37 @@
    "label": "Bus Type",
    "options": "\nSCHOOL BUS\nSTAFF BUS\nADNOC BUS\nELECTRIC BUS\nOTHERS",
    "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "work_order_no",
+   "fieldtype": "Data",
+   "label": "Work Order No"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "transfer_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Transfer Status",
+   "no_copy": 1,
+   "options": "\nNot Transferred\nPartially Transferred\nFully Transferred",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "per_transferred",
+   "fieldtype": "Percent",
+   "label": "% Transferred",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-05 17:49:11.382416",
+ "modified": "2026-10-28 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
