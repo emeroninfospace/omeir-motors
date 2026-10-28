@@ -88,88 +88,59 @@ frappe.ui.form.on('Job Order', {
     }
 
     if (frm.doc.docstatus === 1) {
+        const method_path = 'omeir_motors.omeir_motors.doctype.job_order.job_order.';
 
-        frappe.db.get_list('Sales Invoice', {
-            filters: { custom_job_order: frm.doc.name },
-            fields: ['name', 'docstatus']
-        }).then((invoices) => {
+        show_transfer_status(frm);
 
-    let active_invoices = invoices.filter(inv => inv.docstatus !== 2);
-
-    frm.add_custom_button('Sales Invoice', () => {
-
-    frappe.db.get_list('Sales Invoice', {
-        filters: { custom_job_order: frm.doc.name },
-        fields: ['name', 'docstatus']
-    }).then((fresh_invoices) => {
-
-        let fresh_active = fresh_invoices.filter(inv => inv.docstatus !== 2);
-
-        if (fresh_active.length >= 2) {
-            frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
-            return;
-        }
-        frappe.call({
-            method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.validate_before_sales_invoice',
-            args: {
-                job_order: frm.doc.name
-            },
-            callback: function(r) {
-                if (r.exc) {
-                    return; 
+        frm.add_custom_button('Sales Invoice', () => {
+            frappe.db.count('Sales Invoice', {
+                filters: { custom_job_order: frm.doc.name, docstatus: ['!=', 2] }
+            }).then((active_count) => {
+                if (active_count >= 2) {
+                    frappe.throw(__('Maximum of 2 Sales Invoices already exist for this Job Order'));
                 }
 
                 frappe.call({
-                    method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.make_sales_invoice',
-                    args: {
-                        source_name: frm.doc.name
-                    },
-                    callback: function(r2) {
-                        if (!r2.exc) {
-                            let doc = frappe.model.sync(r2.message)[0];
-                            frappe.set_route('Form', doc.doctype, doc.name);
-                        }
-                    }
+                    method: method_path + 'validate_before_sales_invoice',
+                    args: { job_order: frm.doc.name }
+                }).then(() => frappe.call({
+                    method: method_path + 'make_sales_invoice',
+                    args: { source_name: frm.doc.name }
+                })).then((r) => {
+                    let doc = frappe.model.sync(r.message)[0];
+                    frappe.set_route('Form', doc.doctype, doc.name);
                 });
-            }
-        });
+            });
+        }, 'Create');
 
-    });
-
-}, 'Create');
-
-    if (frm.doc.docstatus === 1) {
         frappe.db.get_list('Sales Invoice', {
             filters: { custom_job_order: frm.doc.name, docstatus: 0 },
             limit: 1
         }).then((draft_invoices) => {
-            if (draft_invoices.length) {
-                frm.add_custom_button(__('Sync to Sales Invoice'), function() {
-                    frappe.confirm(
-                        __('This will overwrite all items in the linked draft Sales Invoice(s) with the current Job Order items. Continue?'),
-                        function() {
-                            frappe.call({
-                                method: 'omeir_motors.omeir_motors.doctype.job_order.job_order.sync_sales_invoice_items',
-                                args: { job_order: frm.doc.name },
-                                callback: function(r) {
-                                    if (r.message && r.message.length) {
-                                        frappe.msgprint({
-                                            title: __('Sync Complete'),
-                                            message: __('Sales Invoice(s) updated: ') + r.message.join(', '),
-                                            indicator: 'green'
-                                        });
-                                    }
+            if (!draft_invoices.length) return;
+
+            frm.add_custom_button(__('Sync to Sales Invoice'), function() {
+                frappe.confirm(
+                    __('This will overwrite all items in the linked draft Sales Invoice(s) with the current Job Order items. Continue?'),
+                    function() {
+                        frappe.call({
+                            method: method_path + 'sync_sales_invoice_items',
+                            args: { job_order: frm.doc.name },
+                            callback: function(r) {
+                                if (r.message && r.message.length) {
+                                    frappe.msgprint({
+                                        title: __('Sync Complete'),
+                                        message: __('Sales Invoice(s) updated: ') + r.message.join(', '),
+                                        indicator: 'green'
+                                    });
                                 }
-                            });
-                        }
-                    );
-                }, __('Update'));
-            }
+                            }
+                        });
+                    }
+                );
+            }, __('Update'));
         });
     }
-
-});
-}
     if (frm.doc.docstatus !== 2 && !frm.is_new() && !frm.doc.quotation) {
 
     frm.add_custom_button('Quotation', () => {
@@ -280,6 +251,19 @@ if (frm.doc.docstatus !== 2 && !frm.is_new()) {
     }
 });
 
+
+function show_transfer_status(frm) {
+    if (!frm.doc.transfer_status) return;
+
+    const percent = flt(frm.doc.per_transferred);
+    const message = __('{0} ({1}% of Job Order Items transferred)', [__(frm.doc.transfer_status), percent]);
+
+    frm.dashboard.add_progress(__('Stock Transfer'), [{
+        title: message,
+        width: percent + '%',
+        progress_class: percent >= 100 ? 'progress-bar-success' : 'progress-bar-warning'
+    }], message);
+}
 
 
 function calculate_amount(cdt, cdn) {

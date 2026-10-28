@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt, nowdate
@@ -12,9 +13,10 @@ class JobOrder(Document):
         self.validate_employee()
         self.validate_job_order_item_rate()
         self.validate_and_update_vehicle_odometer()
+        self.set_transfer_status()
 
-    def before_save(self):
-        pass
+    def before_update_after_submit(self):
+        self.set_transfer_status()
 
     def on_update_after_submit(self):
         self.calculate_total()
@@ -172,40 +174,116 @@ class JobOrder(Document):
                     f"(Cost {valuation_rate} + {margin}%)"
                 )
     def validate_material_request_for_job_order(self):
-           
-            if not self.job_order_items:
-                return
+        if not self.job_order_items:
+            return
 
-            material_requests = frappe.get_all(
-                "Material Request",
-                filters={
-                    "custom_job_order": self.name,
-                    "docstatus": ["!=", 2]
-                },
-                pluck="name"
+        material_requests = frappe.get_all(
+            "Material Request",
+            filters={"custom_job_order": self.name, "docstatus": ["!=", 2]},
+            pluck="name"
+        )
+
+        if not material_requests:
+            frappe.throw(
+                f"Please create a Material Transfer for Job Order {self.name} "
+                f"before creating a Sales Invoice."
             )
 
-            if not material_requests:
-                frappe.throw(
-                    f"Please create a Material Transfer for Job Order {self.name} "
-                    f"before creating a Sales Invoice."
-                )
-
-            has_items = frappe.db.exists(
-                "Material Request Item",
-                {"parent": ["in", material_requests]}
+        if not frappe.db.exists("Material Request Item", {"parent": ["in", material_requests]}):
+            frappe.throw(
+                f"The Material Transfer linked to Job Order {self.name} has no items. "
+                f"Please add items to the Material Transfer before creating a Sales Invoice."
             )
 
-            if not has_items:
-                frappe.throw(
-                    f"The Material Transfer linked to Job Order {self.name} has no items. "
-                    f"Please add items to the Material Transfer before creating a Sales Invoice."
-                )
+    def get_transfer_details(self):
+        """Compare Job Order Item qty with qty moved by submitted Material Transfer
+        Stock Entries (linked directly or through the Job Order's Material Requests)."""
+        required = {}
+        for row in self.job_order_items:
+            if row.item_code and flt(row.quantity) > 0:
+                required[row.item_code] = required.get(row.item_code, 0) + flt(row.quantity)
+
+        if not required:
+            return None, 0, []
+
+        transferred = dict(frappe.db.sql("""
+            SELECT sed.item_code, SUM(sed.transfer_qty)
+            FROM `tabStock Entry Detail` sed
+            JOIN `tabStock Entry` se ON se.name = sed.parent
+            LEFT JOIN `tabMaterial Request` mr ON mr.name = sed.material_request
+            WHERE se.docstatus = 1
+            AND se.purpose = 'Material Transfer'
+            AND (se.custom_job_order = %(job_order)s OR mr.custom_job_order = %(job_order)s)
+            GROUP BY sed.item_code
+        """, {"job_order": self.name})) if not self.is_new() else {}
+
+        done_qty = 0
+        pending = []
+        for item_code, qty in required.items():
+            moved = flt(transferred.get(item_code))
+            done_qty += min(moved, qty)
+            if flt(moved, 3) < flt(qty, 3):
+                pending.append(f"{item_code}: Required {qty}, Transferred {moved}")
+
+        if not pending:
+            status = "Fully Transferred"
+        elif done_qty:
+            status = "Partially Transferred"
+        else:
+            status = "Not Transferred"
+
+        return status, flt(done_qty * 100 / sum(required.values()), 2), pending
+
+    def set_transfer_status(self):
+        self.transfer_status, self.per_transferred, _ = self.get_transfer_details()
+
+    def update_transfer_status(self):
+        status, per_transferred, _ = self.get_transfer_details()
+        if (status, flt(per_transferred)) != (self.transfer_status, flt(self.per_transferred)):
+            self.db_set(
+                {"transfer_status": status, "per_transferred": per_transferred},
+                update_modified=False
+            )
+
+    def validate_stock_transfer_for_job_order(self):
+        if not frappe.db.get_single_value("Binomeir Settings", "validate_stock_transfer"):
+            return
+
+        status, _, pending = self.get_transfer_details()
+        if status and pending:
+            frappe.throw(
+                f"Sales Invoice can be created only after all Job Order Items of {self.name} "
+                f"are transferred through Stock Entry. Pending items:<br><br>" + "<br>".join(pending),
+                title="Stock Transfer Pending"
+            )
+
+    def validate_before_sales_invoice(self):
+        self.validate_material_request_for_job_order()
+        self.validate_stock_transfer_for_job_order()
+
+
+def update_job_order_transfer_status(doc, method=None):
+    """Stock Entry on_submit / on_cancel: refresh transfer status of linked Job Orders."""
+    if doc.purpose != "Material Transfer":
+        return
+
+    job_orders = {doc.custom_job_order} if doc.get("custom_job_order") else set()
+    material_requests = {d.material_request for d in doc.items if d.material_request}
+    if material_requests:
+        job_orders.update(frappe.get_all(
+            "Material Request",
+            filters={"name": ["in", list(material_requests)], "custom_job_order": ["is", "set"]},
+            pluck="custom_job_order"
+        ))
+
+    for job_order in job_orders:
+        if frappe.db.get_value("Job Order", job_order, "docstatus") == 1:
+            frappe.get_doc("Job Order", job_order).update_transfer_status()
+
 
 @frappe.whitelist()
 def validate_before_sales_invoice(job_order):
-    doc = frappe.get_doc("Job Order", job_order)
-    doc.validate_material_request_for_job_order()
+    frappe.get_doc("Job Order", job_order).validate_before_sales_invoice()
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):    
@@ -333,6 +411,7 @@ def make_sales_invoice(source_name, target_doc=None):
                 "field_map": {
                     "customer": "customer",
                     "name": "custom_job_order",
+                    "work_order_no": "custom_work_order_no",
                     "posting_date": "posting_date",
                     "transaction_date": "posting_date",
                     "total_amount": "total",
@@ -627,6 +706,8 @@ def make_bulk_sales_invoice(job_orders, payment_type=None, invoice_type=None, du
         if existing:
             frappe.throw(f"Sales Invoice already exists for Job Order {jo}: {existing}")
 
+        job_doc.validate_before_sales_invoice()
+
         doc = make_sales_invoice(jo)
 
         doc.custom_payment_type = payment_type
@@ -746,6 +827,7 @@ def sync_sales_invoice_items(job_order):
 
     for inv in invoices:
         sinv = frappe.get_doc("Sales Invoice", inv.name)
+        sinv.custom_work_order_no = job_doc.work_order_no
         sinv.set("items", [])
 
         item_list = []

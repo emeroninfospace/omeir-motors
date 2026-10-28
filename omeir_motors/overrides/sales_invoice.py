@@ -3,6 +3,11 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice
 
 class CustomSalesInvoice(SalesInvoice):
 
+    def validate(self):
+        super().validate()
+        if self.custom_job_order and not self.is_return:
+            frappe.get_doc("Job Order", self.custom_job_order).validate_stock_transfer_for_job_order()
+
     def on_submit(self):
         super().on_submit()  
         if self.custom_job_order:
