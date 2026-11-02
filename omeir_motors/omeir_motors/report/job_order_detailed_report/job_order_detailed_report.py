@@ -39,6 +39,12 @@ def get_columns():
             "width": 110,
         },
         {
+            "label": _("Created By"),
+            "fieldname": "created_by",
+            "fieldtype": "Data",
+            "width": 150,
+        },
+        {
             "label": _("Customer"),
             "fieldname": "customer",
             "fieldtype": "Link",
@@ -170,6 +176,7 @@ def get_data(filters=None):
             jo.status,
             jo.job_type,
             jo.expected_completion_date     AS posting_date,
+            COALESCE(usr.full_name, jo.owner) AS created_by,
             jo.customer,
             jo.vehicle,
             jo.make,
@@ -191,6 +198,8 @@ def get_data(filters=None):
             sinv.outstanding_amount
         FROM
             `tabJob Order` jo
+        LEFT JOIN
+            `tabUser` usr ON usr.name = jo.owner
         LEFT JOIN
             `tabService Item` si ON si.parent = jo.name
         LEFT JOIN
