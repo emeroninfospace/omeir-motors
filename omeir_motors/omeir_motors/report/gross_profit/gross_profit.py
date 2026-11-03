@@ -7,6 +7,10 @@
 # Invoices raised against the same Job Order, also shown in a separate "Subcontract Cost"
 # column; everything else is ERPNext's logic.
 
+import html
+import re
+from collections import defaultdict
+
 import frappe
 from frappe import _
 from frappe.utils import flt
@@ -66,31 +70,48 @@ class SubletGrossProfitGenerator(erpnext_gross_profit.GrossProfitGenerator):
         self.load_sublet_rates()
 
     def load_sublet_rates(self):
-        """{(sales_invoice, item_code): cost per unit} from Subcontract Invoices of the invoice's Job Order."""
-        self.sublet_rates = {}
+        """Set `sublet_unit_cost` on sublet Sales Invoice rows from the Subcontract Invoices of the
+        invoice's Job Order. Several sublet jobs often share one item code, so each row is matched
+        to its own Subcontract Invoice line by description (and qty); rows left unmatched get the
+        average rate of the remaining lines."""
         invoices = list({row.parent for row in self.si_list if row.parent})
         if not invoices:
             return
 
-        rows = frappe.db.sql("""
-            SELECT si.name AS sales_invoice, sci.item_code,
-                SUM(sci.amount) / SUM(sci.quantity) AS rate
+        subcontract_lines = defaultdict(list)
+        for line in frappe.db.sql("""
+            SELECT si.name AS sales_invoice, sci.item_code, sci.description, sci.quantity, sci.amount
             FROM `tabSales Invoice` si
             LEFT JOIN `tabSales Invoice` against_si ON against_si.name = si.return_against
             JOIN `tabSubcontract Invoice Item` sci
                 ON sci.job_order = COALESCE(NULLIF(si.custom_job_order, ''), against_si.custom_job_order)
             JOIN `tabSubcontract Invoice` sc ON sc.name = sci.parent AND sc.docstatus = 1
-            WHERE si.name IN %(invoices)s
-            GROUP BY si.name, sci.item_code
-            HAVING SUM(sci.quantity) != 0
-        """, {"invoices": invoices}, as_dict=True)
+            WHERE si.name IN %(invoices)s AND sci.quantity != 0
+            ORDER BY sc.name, sci.idx
+        """, {"invoices": invoices}, as_dict=True):
+            line.description = normalize_description(line.description)
+            subcontract_lines[(line.sales_invoice, line.item_code)].append(line)
 
-        for row in rows:
-            self.sublet_rates[(row.sales_invoice, row.item_code)] = flt(row.rate)
+        for key, lines in subcontract_lines.items():
+            unmatched = []
+            for row in self.si_list:
+                if (row.parent, row.item_code) != key:
+                    continue
+                line = pop_matching_line(row, lines)
+                if line:
+                    row.sublet_unit_cost = flt(line.amount) / flt(line.quantity)
+                else:
+                    unmatched.append(row)
+
+            remaining_qty = sum(flt(line.quantity) for line in lines)
+            if unmatched and remaining_qty:
+                rate = sum(flt(line.amount) for line in lines) / remaining_qty
+                for row in unmatched:
+                    row.sublet_unit_cost = rate
 
     def get_buying_amount(self, row, item_code):
-        rate = self.sublet_rates.get((row.parent or row.get("invoice"), item_code))
-        if rate is not None:
+        rate = row.get("sublet_unit_cost")
+        if rate is not None and item_code == row.item_code:
             row.sublet_rate = rate
             return flt(row.qty) * rate
 
@@ -128,3 +149,17 @@ class SubletGrossProfitGenerator(erpnext_gross_profit.GrossProfitGenerator):
         portion_cost = flt(row.get("subcontract_cost")) * invoice_portion / 100
         super().set_average_based_on_payment_term_portion(new_row, row, invoice_portion, aggr)
         new_row.subcontract_cost = (flt(new_row.get("subcontract_cost")) + portion_cost) if aggr else portion_cost
+
+
+def normalize_description(description):
+    text = html.unescape(re.sub(r"<[^>]+>", " ", description or ""))
+    return " ".join(text.split()).lower()
+
+
+def pop_matching_line(row, lines):
+    description = normalize_description(row.description)
+    qty = abs(flt(row.qty))
+    for same_qty_only in (True, False):
+        for i, line in enumerate(lines):
+            if line.description == description and (not same_qty_only or flt(line.quantity) == qty):
+                return lines.pop(i)
