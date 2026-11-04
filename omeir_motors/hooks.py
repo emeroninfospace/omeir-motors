@@ -27,6 +27,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/omeir_motors/css/omeir_motors.css"
 # app_include_js = "/assets/omeir_motors/js/omeir_motors.js"
+app_include_js = "/assets/omeir_motors/js/accounts_payable.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/omeir_motors/css/omeir_motors.css"
