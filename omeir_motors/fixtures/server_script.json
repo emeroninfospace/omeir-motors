@@ -1,0 +1,19 @@
+[
+ {
+  "allow_guest": 0,
+  "api_method": "omeir_payment_request_voucher",
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Insert",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2026-11-04 17:00:07.147868",
+  "module": "Omeir Motors",
+  "name": "Accounts Payable - Payment Request Voucher",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "script": "# Prints the \"Payment Request Voucher\" for Purchase Invoices picked in the Accounts Payable report.\n# Called by the \"Accounts Payable - Payment Request Voucher\" Client Script.\n# args: invoices = JSON list of {\"invoice\": <Purchase Invoice>, \"amount\": <amount requested>},\n#       paid_from, mode_of_payment. Nothing is saved.\n\nrows = json.loads(frappe.form_dict.invoices or \"[]\")\nif not rows:\n    frappe.throw(_(\"Select at least one Purchase Invoice\"))\n\namounts = {}\nfor row in rows:\n    amounts[row.get(\"invoice\")] = frappe.utils.flt(row.get(\"amount\"), 2)\n\n# get_list applies the user's permissions\ninvoices = frappe.get_list(\n    \"Purchase Invoice\",\n    filters={\"name\": [\"in\", list(amounts)], \"docstatus\": 1},\n    fields=[\"name\", \"supplier\", \"supplier_name\", \"company\", \"bill_no\", \"due_date\",\n            \"grand_total\", \"outstanding_amount\", \"party_account_currency\", \"currency\"],\n)\nby_name = {}\nfor pi in invoices:\n    by_name[pi.name] = pi\n\nvoucher = frappe.new_doc(\"Payment Entry\")\nfirst = None\nfor name in amounts:\n    pi = by_name.get(name)\n    if not pi or frappe.utils.flt(pi.outstanding_amount) <= 0:\n        frappe.throw(_(\"Purchase Invoice\") + \" \" + frappe.bold(name) + \" \" + _(\"has no outstanding amount\"))\n\n    if first and pi.supplier != first.supplier:\n        frappe.throw(_(\"All invoices in a Payment Request Voucher must be for the same supplier\"))\n    first = first or pi\n\n    amount = amounts[name]\n    if amount <= 0 or amount > frappe.utils.flt(pi.outstanding_amount):\n        frappe.throw(\n            _(\"Payment Amount for\") + \" \" + frappe.bold(pi.name) + \" \"\n            + _(\"must be more than 0 and not more than its outstanding\") + \" \"\n            + frappe.bold(frappe.utils.fmt_money(pi.outstanding_amount, 2, pi.currency))\n        )\n\n    voucher.append(\"references\", {\n        \"reference_doctype\": \"Purchase Invoice\",\n        \"reference_name\": pi.name,\n        \"bill_no\": pi.bill_no,\n        \"due_date\": pi.due_date,\n        \"total_amount\": pi.grand_total,\n        \"outstanding_amount\": pi.outstanding_amount,\n        \"allocated_amount\": amount,\n    })\n\nvoucher.name = first.name\nvoucher.payment_type = \"Pay\"\nvoucher.posting_date = frappe.utils.nowdate()\nvoucher.company = first.company\nvoucher.party_type = \"Supplier\"\nvoucher.party = first.supplier\nvoucher.party_name = first.supplier_name\nvoucher.mode_of_payment = frappe.form_dict.mode_of_payment\nvoucher.paid_from = frappe.form_dict.paid_from or frappe.db.get_value(\"Company\", first.company, \"default_bank_account\")\nvoucher.paid_from_account_currency = first.party_account_currency or first.currency\n\nfrappe.response[\"filename\"] = \"Payment Request Voucher \" + voucher.name + \".pdf\"\nfrappe.response[\"filecontent\"] = frappe.get_print(\n    \"Payment Entry\", voucher.name, \"Payment Request Voucher\", doc=voucher, as_pdf=True, no_letterhead=1\n)\nfrappe.response[\"type\"] = \"pdf\"\n",
+  "script_type": "API"
+ }
+]
