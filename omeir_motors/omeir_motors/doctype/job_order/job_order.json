@@ -61,6 +61,8 @@
   "total_quantity",
   "column_break_epvo",
   "total_amount",
+  "item_request_section",
+  "item_request",
   "requested_parts_section",
   "request_parts",
   "sublet_expense_tab",
@@ -476,13 +478,25 @@
    "label": "% Transferred",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "item_request_section",
+   "fieldtype": "Section Break",
+   "label": "Item Request"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "item_request",
+   "fieldtype": "Table",
+   "label": "Item Request",
+   "options": "Job Order Item Request"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-28 10:00:00.000000",
+ "modified": "2026-11-05 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",
