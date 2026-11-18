@@ -148,7 +148,8 @@
    "in_standard_filter": 1,
    "label": "Vehicle",
    "options": "Vehicle",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "depends_on": "eval:doc.vehicle",
@@ -207,7 +208,8 @@
    "fieldname": "expected_completion_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Posting Date"
+   "label": "Posting Date",
+   "search_index": 1
   },
   {
    "fieldname": "company",
@@ -229,7 +231,8 @@
    "in_standard_filter": 1,
    "label": "Customer",
    "options": "Customer",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "quotation",
@@ -253,7 +256,8 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "\nDraft\nPending\nCompleted\nCancelled",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "depends_on": "eval:doc.vehicle",
@@ -496,7 +500,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-05 10:00:00.000000",
+ "modified": "2026-11-18 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Job Order",

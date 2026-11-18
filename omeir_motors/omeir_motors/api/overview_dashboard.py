@@ -20,16 +20,6 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
     total_customers = frappe.db.count("Customer")
     total_suppliers = frappe.db.count("Supplier")
 
-    total_sales = flt(frappe.db.sql(
-        "SELECT SUM(grand_total) FROM `tabSales Invoice` WHERE docstatus=1 AND posting_date BETWEEN %s AND %s",
-        (df, dt),
-    )[0][0])
-
-    total_purchase = flt(frappe.db.sql(
-        "SELECT SUM(grand_total) FROM `tabPurchase Invoice` WHERE docstatus=1 AND posting_date BETWEEN %s AND %s",
-        (df, dt),
-    )[0][0])
-
     total_received = flt(frappe.db.sql(
         """SELECT SUM(paid_amount) FROM `tabPayment Entry`
            WHERE docstatus=1 AND payment_type='Receive' AND posting_date BETWEEN %s AND %s""",
@@ -37,48 +27,31 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
     )[0][0])
 
     monthly_sales_purchase = _get_monthly_sales_purchase(df, dt)
+    # The monthly breakdown covers the same invoices, so the period totals come from it
+    total_sales = flt(sum(flt(m.sales) for m in monthly_sales_purchase))
+    total_purchase = flt(sum(flt(m.purchase) for m in monthly_sales_purchase))
 
-    bank_accounts = frappe.db.sql(
-        """SELECT a.name, a.account_name,
+    bank_accounts, cash_accounts = [], []
+    for account in frappe.db.sql(
+        """SELECT a.name, a.account_name, a.account_type,
                   IFNULL(SUM(gl.debit - gl.credit), 0) AS balance
            FROM `tabAccount` a
            LEFT JOIN `tabGL Entry` gl ON gl.account = a.name AND gl.is_cancelled = 0
-           WHERE a.account_type = 'Bank'
+           WHERE a.account_type IN ('Bank', 'Cash', 'Petty Cash')
              AND a.is_group = 0
              AND a.disabled = 0
              AND (a.company = %s OR %s IS NULL)
            GROUP BY a.name
            ORDER BY balance DESC""",
         (company, company), as_dict=True,
-    )
+    ):
+        (bank_accounts if account.pop("account_type") == "Bank" else cash_accounts).append(account)
 
-    cash_accounts = frappe.db.sql(
-        """SELECT a.name, a.account_name,
-                  IFNULL(SUM(gl.debit - gl.credit), 0) AS balance
-           FROM `tabAccount` a
-           LEFT JOIN `tabGL Entry` gl ON gl.account = a.name AND gl.is_cancelled = 0
-           WHERE a.account_type IN ('Cash', 'Petty Cash')
-             AND a.is_group = 0
-             AND a.disabled = 0
-             AND (a.company = %s OR %s IS NULL)
-           GROUP BY a.name
-           ORDER BY balance DESC""",
-        (company, company), as_dict=True,
-    )
-
-    accounts_payable = flt(frappe.db.sql(
-        "SELECT SUM(outstanding_amount) FROM `tabPurchase Invoice` WHERE docstatus=1 AND outstanding_amount > 0"
-    )[0][0])
-    accounts_payable_count = frappe.db.count(
-        "Purchase Invoice", {"docstatus": 1, "outstanding_amount": [">", 0]}
-    )
-    overdue_payable = frappe.db.count(
-        "Purchase Invoice",
-        {"docstatus": 1, "outstanding_amount": [">", 0], "due_date": ["<", nowdate()]},
-    )
-    paid_payable = frappe.db.count(
-        "Purchase Invoice", {"docstatus": 1, "status": "Paid"}
-    )
+    payable = _get_outstanding_summary("Purchase Invoice")
+    accounts_payable = payable.outstanding
+    accounts_payable_count = payable.outstanding_count
+    overdue_payable = payable.overdue_count
+    paid_payable = payable.paid_count
     all_payable = frappe.db.get_list(
         "Purchase Invoice",
         filters=[["docstatus", "=", 1], ["outstanding_amount", ">", 0]],
@@ -87,19 +60,11 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         limit=200,
     )
 
-    accounts_receivable = flt(frappe.db.sql(
-        "SELECT SUM(outstanding_amount) FROM `tabSales Invoice` WHERE docstatus=1 AND outstanding_amount > 0"
-    )[0][0])
-    accounts_receivable_count = frappe.db.count(
-        "Sales Invoice", {"docstatus": 1, "outstanding_amount": [">", 0]}
-    )
-    overdue_receivable = frappe.db.count(
-        "Sales Invoice",
-        {"docstatus": 1, "outstanding_amount": [">", 0], "due_date": ["<", nowdate()]},
-    )
-    paid_receivable = frappe.db.count(
-        "Sales Invoice", {"docstatus": 1, "status": "Paid"}
-    )
+    receivable = _get_outstanding_summary("Sales Invoice")
+    accounts_receivable = receivable.outstanding
+    accounts_receivable_count = receivable.outstanding_count
+    overdue_receivable = receivable.overdue_count
+    paid_receivable = receivable.paid_count
     all_receivable = frappe.db.get_list(
         "Sales Invoice",
         filters=[["docstatus", "=", 1], ["outstanding_amount", ">", 0]],
@@ -147,21 +112,28 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         ('%Employee Expense Payable%',),
         as_dict=True,
     )
-    emp_expense_payable = flt(frappe.db.sql(
-        """SELECT IFNULL(SUM(total_claimed_amount), 0)
+    emp_expense_payable, emp_expense_count = frappe.db.sql(
+        """SELECT IFNULL(SUM(total_claimed_amount), 0), COUNT(*)
            FROM `tabExpense Claim`
            WHERE docstatus = 1
              AND payable_account LIKE %s""",
         ('%Employee Expense Payable%',)
-    )[0][0])
+    )[0]
 
-    other_payable = flt(frappe.db.sql(
-        """SELECT IFNULL(SUM(gl.credit - gl.debit), 0)
-           FROM `tabGL Entry` gl
-           WHERE gl.account LIKE %s
-             AND gl.is_cancelled = 0""",
-        ('%Other Payable%',)
-    )[0][0])
+    # Match the account names on the small Account table, then use the GL Entry account index
+    # (a LIKE on gl.account would scan the whole General Ledger)
+    other_payable = 0.0
+    other_payable_accounts = frappe.get_all(
+        "Account", filters={"name": ["like", "%Other Payable%"]}, pluck="name"
+    )
+    if other_payable_accounts:
+        other_payable = flt(frappe.db.sql(
+            """SELECT IFNULL(SUM(gl.credit - gl.debit), 0)
+               FROM `tabGL Entry` gl
+               WHERE gl.account IN %s
+                 AND gl.is_cancelled = 0""",
+            (other_payable_accounts,)
+        )[0][0])
 
     inv_type_raw = frappe.db.sql(
         """SELECT custom_invoice_type AS `type`,
@@ -272,12 +244,8 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         "all_receivable": all_receivable,
         "overdue_receivables": overdue_receivables,
         "overdue_payables": overdue_payables,
-        "emp_expense_payable": emp_expense_payable,
-        "emp_expense_count": int(frappe.db.sql(
-            """SELECT COUNT(*) FROM `tabExpense Claim`
-               WHERE docstatus = 1 AND payable_account LIKE %s""",
-            ('%Employee Expense Payable%',)
-        )[0][0]),
+        "emp_expense_payable": flt(emp_expense_payable),
+        "emp_expense_count": int(emp_expense_count),
         "emp_expense_records": emp_expense_records,
         "other_payable": other_payable,
         "sales_by_inv_type": sales_by_inv_type,
@@ -285,6 +253,24 @@ def get_overview_dashboard_data(period="this_year", date_from=None, date_to=None
         "recent_sales": recent_sales,
         "recent_purchases": recent_purchases,
     }
+
+
+def _get_outstanding_summary(doctype):
+    """Outstanding total and open / overdue / paid counts of submitted invoices, in one scan."""
+    row = frappe.db.sql(
+        f"""SELECT
+               IFNULL(SUM(CASE WHEN outstanding_amount > 0 THEN outstanding_amount END), 0) AS outstanding,
+               IFNULL(SUM(outstanding_amount > 0), 0) AS outstanding_count,
+               IFNULL(SUM(outstanding_amount > 0 AND due_date < %(today)s), 0) AS overdue_count,
+               IFNULL(SUM(status = 'Paid'), 0) AS paid_count
+           FROM `tab{doctype}`
+           WHERE docstatus = 1""",
+        {"today": nowdate()}, as_dict=True,
+    )[0]
+    row.outstanding = flt(row.outstanding)
+    for key in ("outstanding_count", "overdue_count", "paid_count"):
+        row[key] = int(row[key])
+    return row
 
 
 def _get_monthly_sales_purchase(df, dt):

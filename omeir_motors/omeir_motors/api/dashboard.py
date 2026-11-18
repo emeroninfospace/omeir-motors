@@ -58,20 +58,17 @@ def get_workshop_dashboard_data():
             seen.add(t.employee)
             unique_technicians.append(t)
 
-    total_job_cards = frappe.db.sql("""
-        SELECT COUNT(*) FROM `tabJob Order`
-        WHERE docstatus = 1
-    """)[0][0]
-
-    pending_job_cards = frappe.db.sql("""
-        SELECT COUNT(*) FROM `tabJob Order`
-        WHERE docstatus = 1 AND status = 'Pending'
-    """)[0][0]
-
-    draft_job_cards = frappe.db.sql("""
-        SELECT COUNT(*) FROM `tabJob Order`
-        WHERE docstatus = 0
-    """)[0][0]
+    total_job_cards, pending_job_cards, draft_job_cards, completed_job_cards = (
+        int(count or 0)
+        for count in frappe.db.sql("""
+            SELECT
+                SUM(docstatus = 1),
+                SUM(docstatus = 1 AND status = 'Pending'),
+                SUM(docstatus = 0),
+                SUM(docstatus = 1 AND status = 'Completed')
+            FROM `tabJob Order`
+        """)[0]
+    )
 
     multi_invoice_jobs = frappe.db.sql("""
         SELECT
@@ -106,11 +103,6 @@ def get_workshop_dashboard_data():
           AND jo.gate_pass_issued = 1
         ORDER BY jo.expected_completion_date DESC
     """, as_dict=True)
-
-    completed_job_cards = frappe.db.sql("""
-        SELECT COUNT(*) FROM `tabJob Order`
-        WHERE docstatus = 1 AND status = 'Completed'
-    """)[0][0]
 
     return {
         "jobs": jobs,

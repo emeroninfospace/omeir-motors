@@ -92,11 +92,16 @@ class SubletGrossProfitGenerator(erpnext_gross_profit.GrossProfitGenerator):
             line.description = normalize_description(line.description)
             subcontract_lines[(line.sales_invoice, line.item_code)].append(line)
 
+        if not subcontract_lines:
+            return
+
+        rows_by_key = defaultdict(list)
+        for row in self.si_list:
+            rows_by_key[(row.parent, row.item_code)].append(row)
+
         for key, lines in subcontract_lines.items():
             unmatched = []
-            for row in self.si_list:
-                if (row.parent, row.item_code) != key:
-                    continue
+            for row in rows_by_key.get(key, ()):
                 line = pop_matching_line(row, lines)
                 if line:
                     row.sublet_unit_cost = flt(line.amount) / flt(line.quantity)

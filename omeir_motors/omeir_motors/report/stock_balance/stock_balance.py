@@ -236,16 +236,18 @@ class StockBalanceReport:
 		if not data:
 			return
 
-		for row in data:
-			if row.count != 1:
-				continue
+		single_entry_rows = [row.voucher_detail_no for row in data if row.count == 1]
+		if not single_entry_rows:
+			return
 
-			sr_item = frappe.db.get_value(
-				"Stock Reconciliation Item", row.voucher_detail_no, ["current_qty", "qty"], as_dict=True
-			)
-
+		# one query for all reconciliation rows instead of one get_value per row
+		for sr_item in frappe.get_all(
+			"Stock Reconciliation Item",
+			filters={"name": ["in", single_entry_rows]},
+			fields=["name", "current_qty", "qty"],
+		):
 			if sr_item.qty and sr_item.current_qty:
-				self.stock_reco_voucher_wise_count[row.voucher_detail_no] = sr_item.current_qty
+				self.stock_reco_voucher_wise_count[sr_item.name] = sr_item.current_qty
 
 	def get_sre_reserved_qty_details(self) -> dict:
 		from erpnext.stock.doctype.stock_reservation_entry.stock_reservation_entry import (

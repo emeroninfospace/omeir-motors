@@ -99,7 +99,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Employee",
-   "options": "Employee"
+   "options": "Employee",
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -147,7 +148,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-19 10:56:50.511340",
+ "modified": "2026-11-18 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Omeir Motors",
  "name": "Service Item",
